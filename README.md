@@ -35,5 +35,3 @@ Upload extracted files, not the ZIP archive itself.
 This is a one-week prototype with 30-minute planning units. The scheduler checks deadlines, available hours and conflicts. The AI component is a small local text classifier and duration regression model, with structured date/time extraction. Its initial duration examples are illustrative, not measured student results. Explicitly recorded actual times can personalize later estimates. All suggestions require review.
 
 Plans, feedback and learning examples stay in the current browser. Opening the hosted site creates a separate browser data store from the local HTML file. No external AI service, LMS or account system is connected.
-
-Official hosting instructions: https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site
