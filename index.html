@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#f7f8fa"><meta name="description" content="A realistic weekly study plan. Recover missed sessions and approve every change."><title>AI Study Planner</title><style>:root {
+  color-scheme: light;
+  --canvas: #f7f8fa;
+  --surface: #fff;
+  --text: #182333;
+  --muted: #75808d;
+  --line: #e6e9ed;
+  --soft: #f2f4f6;
+  --accent: #17345e;
+  --accent-hover: #102a4e;
+  --accent-soft: #edf3fc;
+  --amber: #956319;
+  --amber-soft: #fff8e9;
+  --danger: #a94747;
+  --danger-soft: #fff1f1;
+  --radius: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
+  font-synthesis: none;
+}
+* { box-sizing: border-box; }
+html { min-width: 320px; scroll-behavior: smooth; }
+body { margin: 0; background: var(--canvas); color: var(--text); line-height: 1.5; }
+button, input, select, textarea { font: inherit; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, a { touch-action: manipulation; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .45; }
+button, input, select, textarea { outline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--accent); }
+a { color: var(--accent); text-underline-offset: 3px; }
+svg { display: inline-block; width: 20px; height: 20px; vertical-align: middle; flex-shrink: 0; }
+button svg { pointer-events: none; }
+h1, h2, h3, p { margin-top: 0; }
+h1 { font-size: 30px; letter-spacing: -1px; line-height: 1.22; font-weight: 650; margin-bottom: 10px; }
+h2 { font-size: 17px; letter-spacing: -.35px; line-height: 1.35; margin-bottom: 12px; font-weight: 650; }
+h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+p { margin-bottom: 14px; }
+small { font-size: 12px; }
+[hidden] { display: none !important; }
+.shell { display: flex; min-height: 100vh; }
+.sidebar { position: sticky; top: 0; height: 100vh; flex: 0 0 220px; padding: 30px 18px 22px; background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 650; line-height: 1.25; letter-spacing: -.4px; padding: 0 8px; }
+.brand-mark { display: inline-flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 10px; color: #fff; background: var(--text); flex-shrink: 0; }
+.brand-sub { color: var(--muted); font-size: 11px; letter-spacing: .1px; font-weight: 400; margin-top: 3px; }
+.nav { display: flex; flex-direction: column; gap: 6px; margin-top: 42px; }
+.nav-item { display: flex; align-items: center; gap: 12px; width: 100%; border: none; border-radius: 9px; padding: 12px 14px; text-align: left; color: #73808f; background: transparent; font-weight: 500; }
+.nav-item svg { width: 18px; height: 18px; }
+.nav-item:hover { background: #f6f7f8; color: var(--text); }
+.nav-item.active { background: var(--accent-soft); color: var(--accent); }
+.sidebar-foot { margin-top: auto; padding: 20px 9px 0; color: var(--muted); font-size: 12px; }
+.sidebar-foot p { margin-bottom: 8px; }
+.main { flex: 1 1 0; min-width: 0; }
+.topbar { min-height: 76px; padding: 18px 32px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 18px; background: rgba(255,255,255,.85); }
+.breadcrumbs { color: var(--muted); font-size: 13px; }
+.breadcrumbs strong { color: var(--text); font-weight: 500; }
+.top-actions { display: flex; align-items: center; gap: 17px; flex-wrap: wrap; }
+.language { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; padding: 3px; background: #fff; }
+.language button { border: 0; padding: 4px 7px; border-radius: 4px; background: transparent; color: var(--muted); font-size: 11px; line-height: 1.3; }
+.language button.active, .language button[aria-pressed="true"] { color: var(--text); background: var(--soft); font-weight: 600; }
+.saved-indicator { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.saved-indicator svg { width: 14px; height: 14px; color: var(--accent); }
+.content { max-width: 1700px; padding: 32px; margin: 0 auto; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 28px; }
+.eyebrow, .welcome-kicker { color: var(--accent); font-size: 11px; letter-spacing: 1.7px; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; }
+.subtitle { color: var(--muted); max-width: 690px; margin: 0; line-height: 1.6; font-size: 14px; }
+.header-actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; flex-shrink: 0; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat { padding: 21px 23px 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.stat-label { color: var(--muted); font-size: 12px; font-weight: 500; margin-bottom: 9px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.stat-label svg { width: 16px; height: 16px; color: #929ca6; }
+.stat-value { font-size: 27px; line-height: 1.2; letter-spacing: -.9px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat-detail { color: var(--muted); font-size: 12px; margin-top: 7px; }
+.stat.warning .stat-value { color: var(--amber); }
+.stat.teal .stat-value { color: var(--accent); }
+.workspace { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 22px; align-items: start; }
+.right-column, .section-stack { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); min-width: 0; }
+.panel-header { padding: 21px 22px 17px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+.panel-header h2, .panel-header h3, .panel-header p { margin-bottom: 0; }
+.panel-header p { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.panel-body { padding: 0 22px 22px; }
+.plan-panel { overflow: hidden; }
+.week-toolbar { padding: 0 22px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
+.week-toolbar strong { color: var(--text); font-weight: 500; }
+.week-grid { width: 100%; display: grid; grid-template-columns: repeat(7,minmax(106px,1fr)); overflow-x: auto; border-top: 1px solid var(--line); scrollbar-width: thin; scrollbar-color: #d5dbdf transparent; }
+.day-column { min-height: 365px; border-right: 1px solid var(--line); padding: 0 7px 13px; }
+.day-column:last-child { border-right: 0; }
+.day-head { padding: 15px 2px 14px; font-size: 11px; color: var(--muted); text-align: center; font-weight: 500; border-bottom: 1px solid #f0f2f4; margin-bottom: 11px; }
+.day-date { display: block; margin-top: 5px; color: var(--text); font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.day-column.today .day-date { color: var(--accent); }
+.session { padding: 10px 8px 8px; background: var(--accent-soft); border: 1px solid #dbe1ec; border-left: 3px solid #5e739d; border-radius: 7px; margin-bottom: 8px; overflow-wrap: anywhere; }
+.session-time { color: #5d6982; font-size: 10px; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+.session-title { font-size: 12px; line-height: 1.4; font-weight: 600; margin-bottom: 3px; }
+.session-course { color: #717887; font-size: 10px; line-height: 1.4; }
+.session-actions { display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap; }
+.session-actions button { font-size: 10px; border: 1px solid #cdd3df; border-radius: 4px; color: #42506c; background: #fff; padding: 3px 5px; min-height: 25px; }
+.session.completed { border-color: #e4e5e8; border-left-color: #aeb3bd; background: #f4f5f6; }
+.session.completed .session-title { color: #7b7f88; text-decoration: line-through; }
+.session.missed { border-color: #f0e2c7; border-left-color: #c49c58; background: #fff8ed; }
+.session.missed .session-time, .session.missed .session-course { color: #997b4a; }
+.day-free { color: #a0a9b1; font-size: 11px; text-align: center; margin: 23px 0 10px; line-height: 1.6; }
+.task-list { padding: 0 20px 9px; }
+.task-row { padding: 15px 0; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 10px; min-width: 0; }
+.task-row:first-child { border-top: 0; padding-top: 3px; }
+.task-main { flex: 1; min-width: 0; }
+.task-main strong { display: block; font-size: 13px; line-height: 1.45; font-weight: 550; overflow-wrap: anywhere; }
+.task-dot { width: 7px; height: 7px; border-radius: 50%; background: #6b7b9a; flex-shrink: 0; }
+.task-dot.high { background: #cf9b61; }
+.task-dot.low { background: #9fa9b3; }
+.task-meta { color: var(--muted); font-size: 11px; line-height: 1.5; margin-top: 4px; }
+.task-hours { font-size: 12px; white-space: nowrap; color: #75828d; font-variant-numeric: tabular-nums; }
+.notice { padding: 13px 15px; border: 1px solid var(--line); border-radius: 9px; color: #657280; background: #f7f9fa; font-size: 13px; line-height: 1.6; }
+.notice p:last-child { margin-bottom: 0; }
+.notice.warning { background: var(--amber-soft); border-color: #f1e4c5; color: #8b682d; }
+.notice.success { background: var(--accent-soft); border-color: #d8deea; color: #3d5075; }
+.notice.error { background: var(--danger-soft); border-color: #efd6d6; color: var(--danger); }
+.empty-state { padding: 38px 25px; text-align: center; color: var(--muted); }
+.empty-state svg { width: 28px; height: 28px; color: #a7acb6; margin-bottom: 14px; }
+.empty-state h3 { color: var(--text); font-weight: 500; }
+.empty-state p { max-width: 350px; margin: 0 auto 20px; font-size: 13px; }
+.step-list { padding: 0 22px 20px; list-style: none; margin: 0; }
+.step-list li { display: flex; align-items: flex-start; gap: 11px; padding: 10px 0; color: #647180; font-size: 12px; }
+.step-number { width: 22px; height: 22px; border: 1px solid #e4e6e9; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: var(--accent); flex-shrink: 0; }
+.change-card { padding: 20px; border: 1px solid var(--line); background: #fff; border-radius: 12px; }
+.change-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
+.change-title { font-weight: 600; font-size: 15px; line-height: 1.4; }
+.change-time { color: var(--accent); font-size: 13px; font-weight: 500; margin: 10px 0 8px; }
+.change-reason { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+.change-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 39px; padding: 9px 15px; border: 1px solid transparent; border-radius: 7px; font-size: 13px; font-weight: 500; line-height: 1.35; text-decoration: none; transition: background .15s, border-color .15s; white-space: nowrap; }
+.btn svg { width: 16px; height: 16px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.secondary { background: #fff; border-color: #dce1e6; color: #485769; }
+.btn.secondary:hover { background: #f6f8f9; border-color: #cbd3db; }
+.btn.ghost { background: transparent; color: #74818e; border-color: transparent; }
+.btn.ghost:hover { background: #edf1f3; color: var(--text); }
+.btn.danger { color: var(--danger); border-color: #edcece; background: #fff; }
+.btn.danger:hover { background: var(--danger-soft); }
+.btn.small { min-height: 32px; padding: 6px 10px; font-size: 12px; }
+.icon-button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0; border-radius: 6px; background: transparent; color: #8d98a3; flex-shrink: 0; }
+.icon-button:hover { background: #f0f3f5; color: var(--text); }
+.icon-button svg { width: 16px; height: 16px; }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 5px; background: #f0f3f5; color: #7b8792; font-size: 10px; font-weight: 500; line-height: 1.3; white-space: nowrap; }
+.badge.muted { background: #f1f3f5; color: #7c8792; }
+.badge.teal { background: var(--accent-soft); color: var(--accent); }
+.badge.amber { background: var(--amber-soft); color: var(--amber); }
+.form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+.field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.field.full { grid-column: 1/-1; }
+.field label, label.field { color: #596675; font-size: 12px; font-weight: 500; }
+.field small, .field .hint { color: var(--muted); font-size: 11px; font-weight: 400; }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea { width: 100%; min-width: 0; border: 1px solid #dce2e7; border-radius: 7px; background: #fff; color: var(--text); padding: 10px 11px; min-height: 40px; }
+input::placeholder, textarea::placeholder { color: #a1a9b1; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+textarea { resize: vertical; min-height: 110px; }
+.form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 23px; flex-wrap: wrap; }
+.availability-row { display: grid; grid-template-columns: 1.25fr 1fr 1fr auto; gap: 13px; padding: 13px 0; border-bottom: 1px solid var(--line); align-items: center; }
+.availability-row:last-child { border-bottom: 0; }
+.availability-row > span:first-child { font-size: 13px; font-weight: 500; }
+.feedback-item { border-top: 1px solid var(--line); padding: 17px 0; }
+.feedback-item:first-child { border-top: 0; }
+.feedback-item p { margin: 8px 0; color: #697584; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.modal-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(21,31,42,.33); backdrop-filter: blur(2px); padding: 24px; overflow-y: auto; }
+.modal { width: min(560px,100%); max-height: calc(100dvh - 48px); padding: 0; background: #fff; color: var(--text); border: 1px solid #e2e6e9; border-radius: 16px; box-shadow: 0 20px 80px rgba(26,39,50,.14); overflow-y: auto; }
+dialog.modal::backdrop { background: rgba(21,31,42,.33); backdrop-filter: blur(2px); }
+.modal-header { padding: 24px 25px 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+.modal-header h2 { margin: 0; font-size: 19px; }
+.modal-body { padding: 2px 25px 25px; }
+.modal-body p { color: #6a7683; font-size: 13px; line-height: 1.65; }
+.modal-footer { padding: 17px 25px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 9px; }
+.dialog-close { display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--muted); width: 26px; height: 26px; border-radius: 5px; font-size: 22px; line-height: 1; }
+.dialog-close:hover { background: var(--soft); color: var(--text); }
+.toast { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 200; padding: 12px 19px; border-radius: 9px; background: var(--text); color: #fff; box-shadow: 0 4px 20px #17232e1a; font-size: 13px; max-width: min(520px,calc(100vw - 32px)); text-align: center; }
+.welcome { min-height: calc(100vh - 160px); display: grid; grid-template-columns: minmax(0,1fr) minmax(340px, .85fr); gap: clamp(36px,6vw,100px); align-items: center; max-width: 1080px; margin: 0 auto; padding: 24px 0 70px; }
+.welcome-copy h1 { font-size: clamp(34px,3.5vw,48px); letter-spacing: -1.8px; line-height: 1.17; max-width: 600px; margin-bottom: 24px; font-weight: 600; }
+.welcome-copy > p { color: var(--muted); line-height: 1.8; font-size: 15px; max-width: 490px; }
+.welcome-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+.welcome-buttons .btn { padding: 12px 18px; }
+.welcome-preview { position: relative; padding: 24px; background: #eeeff2; border: 1px solid #e5e7ea; border-radius: 20px; }
+.preview-card { background: #fff; padding: 23px; border: 1px solid #e0e2e6; border-radius: 12px; box-shadow: 0 6px 22px rgba(36,58,46,.04); }
+.preview-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 20px; font-size: 13px; font-weight: 600; }
+.preview-line { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid #eeeff1; font-size: 12px; }
+.preview-line > span:first-child { color: #9397a0; min-width: 42px; font-size: 11px; }
+.preview-line strong { display: block; font-size: 12px; font-weight: 550; }
+.preview-line small { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+.preview-change { background: var(--accent-soft); border: 1px solid #d8dee9; padding: 15px; margin-top: 15px; border-radius: 8px; font-size: 12px; color: #4d5b77; }
+.preview-change strong { color: #293f6b; font-weight: 600; }
+.preview-change p:last-child { margin-bottom: 0; }
+.footer-note { color: #909aa4; font-size: 11px; margin-top: 22px; line-height: 1.6; }
+.progress-bar { height: 4px; background: #eeeff2; border-radius: 5px; overflow: hidden; margin-top: 12px; }
+.progress-bar > span, .progress-bar > div { height: 100%; display: block; background: #6479a2; border-radius: inherit; }
+.review-layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 24px; align-items: start; }
+.metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; gap: 15px; font-size: 13px; color: #74808d; }
+.metric-row strong { color: var(--text); font-weight: 500; }
+.divider { border: 0; border-top: 1px solid var(--line); margin: 18px 0; }
+.text-muted { color: var(--muted); }
+.text-small { font-size: 12px; }
+.text-accent { color: var(--accent); }
+.text-right { text-align: right; }
+.inline-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.spaced { margin-top: 20px; }
+.welcome-shell .welcome { padding-left: 24px; padding-right: 24px; }
+.sidebar-tagline { padding-left: 53px; margin-top: 8px; line-height: 1.5; }
+.nav-count { margin-left: auto; font-size: 10px; padding: 1px 5px; border-radius: 4px; background: #e6e8ec; color: #656e81; }
+.saved-indicator > span { width: 5px; height: 5px; background: #7083a9; border-radius: 50%; flex-shrink: 0; }
+.text-button { border: 0; background: transparent; color: #778590; padding: 4px 0; display: inline-flex; gap: 6px; align-items: center; font-size: 11px; }
+.text-button:hover { color: var(--accent); }
+.text-button svg { width: 13px; height: 13px; }
+.week-scroll { width: 100%; overflow-x: auto; scrollbar-width: thin; scrollbar-color: #d5dbdf transparent; }
+.week-scroll .week-grid { overflow: visible; min-width: 780px; }
+.day-capacity { font-size: 10px; color: #a2abb3; text-align: center; border-top: 1px dashed #e9ecee; padding-top: 9px; margin-top: 14px; }
+.session-status { color: #838892; font-size: 10px; margin-top: 8px; }
+.session.missed .session-status { color: #a3885b; }
+.session-actions button svg { width: 11px; height: 11px; margin-right: 2px; }
+.plan-note { padding: 12px 20px; border-top: 1px solid var(--line); margin: 0; display: flex; gap: 7px; align-items: center; }
+.plan-note svg { width: 13px; height: 13px; }
+.btn.full { width: 100%; }
+.stat-warning .stat-value, .warning-text { color: var(--amber); }
+.muted-text { color: var(--muted); }
+.task-detail-row { display: flex; align-items: center; gap: 15px; padding: 20px 23px; border-top: 1px solid var(--line); }
+.task-detail-row:first-child { border-top: 0; }
+.task-detail-row h3 { margin-bottom: 3px; }
+.task-detail-row > .badge { align-self: center; }
+.availability-day .availability-row { grid-template-columns: 1fr auto; padding: 8px 0; }
+.availability-day .availability-row > span { display: inline-flex; align-items: center; gap: 9px; }
+.availability-day .availability-row svg { width: 15px; height: 15px; color: #898e97; }
+.availability-day .panel-body > p:last-child { margin-bottom: 0; font-size: 12px; }
+.review-summary { position: sticky; top: 25px; }
+.form-error { font-size: 12px; color: var(--danger) !important; margin: 0; }
+.form-grid > .form-actions, .form-grid > .form-error, .form-grid > p, .form-grid > div:last-child:not(.field) { grid-column: 1/-1; }
+.form-grid > .form-actions { margin-top: 3px; }
+#feedback-form { padding-top: 23px; }
+#feedback-form .field:has(textarea) { grid-column: 1/-1; }
+.preview-change { display: grid; grid-template-columns: 1fr 18px 1fr; gap: 10px; align-items: center; }
+.preview-change p { margin: 9px 0 0; font-size: 11px; }
+.preview-change > svg { width: 16px; height: 16px; color: #838da2; }
+.preview-bottom { display: flex; align-items: center; gap: 7px; margin-top: 18px; color: #868a93; font-size: 11px; }
+.preview-bottom svg { width: 14px; height: 14px; color: #687897; }
+.preview-line .task-dot { min-width: 7px !important; width: 7px; height: 7px; }
+.empty-icon { display: inline-flex; }
+.content > .notice { margin-top: 20px; }
+@media (min-width: 1600px) { .content { padding: 38px 42px; } .topbar { padding-left: 42px; padding-right: 42px; } }
+@media (max-width: 1250px) {
+  .workspace { grid-template-columns: minmax(0,1fr); }
+  .right-column { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+  .welcome { gap: 35px; }
+}
+@media (max-width: 1000px) {
+  .shell { display: block; }
+  .sidebar { position: static; height: auto; width: 100%; padding: 18px 24px 0; border-right: 0; border-bottom: 1px solid var(--line); }
+  .brand { padding: 0; }
+  .sidebar-tagline { display: none; }
+  .nav { flex-direction: row; flex-wrap: wrap; margin-top: 18px; gap: 4px; padding-bottom: 10px; }
+  .nav-item { width: auto; padding: 9px 13px; font-size: 12px; gap: 8px; }
+  .sidebar-foot { display: none; }
+  .topbar { min-height: 64px; padding: 15px 24px; }
+  .content { padding: 27px 24px; }
+  .welcome { min-height: auto; padding: 45px 0 35px; }
+  .review-layout { grid-template-columns: minmax(0,1fr) 270px; gap: 18px; }
+}
+@media (max-width: 760px) {
+  .page-header { align-items: flex-start; flex-direction: column; gap: 18px; }
+  h1 { font-size: 27px; }
+  .stats { gap: 10px; }
+  .stat { padding: 16px; }
+  .stat-value { font-size: 23px; }
+  .stat-label { font-size: 11px; }
+  .stat-detail { font-size: 10px; }
+  .stat-label svg { display: none; }
+  .right-column, .review-layout { display: flex; flex-direction: column; }
+  .right-column > *, .review-layout > * { width: 100%; }
+  .review-summary { position: static; }
+  .task-detail-row { flex-wrap: wrap; gap: 10px; }
+  .task-detail-row > .task-main { flex-basis: calc(100% - 25px); }
+  .task-detail-row > .badge { margin-left: 17px; }
+  .welcome { grid-template-columns: 1fr; gap: 35px; }
+  .welcome-copy h1 { font-size: 38px; max-width: 550px; }
+  .welcome-copy > p { max-width: 580px; }
+  .welcome-preview { max-width: 500px; }
+  .saved-indicator { font-size: 11px; }
+  .availability-row { grid-template-columns: 1fr 1fr auto; gap: 8px; }
+  .availability-row > :first-child { grid-column: 1/-1; }
+}
+@media (max-width: 480px) {
+  .sidebar { padding: 17px 16px 0; }
+  .brand { font-size: 15px; }
+  .brand-mark { width: 31px; height: 31px; border-radius: 8px; }
+  .nav { gap: 2px; margin-top: 15px; flex-wrap: nowrap; overflow-x: auto; }
+  .nav-item { padding: 9px 10px; flex-shrink: 0; }
+  .nav-item svg { width: 16px; height: 16px; }
+  .topbar { padding: 13px 16px; gap: 9px; }
+  .breadcrumbs { font-size: 11px; }
+  .top-actions { gap: 9px; }
+  .saved-indicator { max-width: 130px; line-height: 1.35; }
+  .content { padding: 24px 16px; }
+  .stats { grid-template-columns: 1fr; gap: 8px; }
+  .stat { display: grid; grid-template-columns: 1fr auto; padding: 13px 16px; align-items: center; gap: 2px 12px; }
+  .stat-label { margin: 0; font-size: 12px; }
+  .stat-value { grid-column: 2; grid-row: 1/3; font-size: 24px; }
+  .stat-detail { margin: 0; font-size: 11px; }
+  .panel-header { padding: 18px 16px 15px; }
+  .panel-body { padding: 0 16px 18px; }
+  .week-toolbar { padding: 0 16px 15px; }
+  .header-actions { gap: 7px; width: 100%; }
+  .header-actions .btn { padding-left: 11px; padding-right: 11px; }
+  .form-grid { grid-template-columns: 1fr; gap: 15px; }
+  .modal-overlay { padding: 14px; }
+  .modal { max-height: calc(100dvh - 28px); border-radius: 12px; }
+  .modal-header { padding: 20px 19px 16px; }
+  .modal-body { padding: 0 19px 20px; }
+  .modal-footer { padding: 15px 19px; }
+  .welcome { padding-top: 22px; }
+  .welcome-shell .welcome { padding-left: 16px; padding-right: 16px; }
+  .welcome-copy h1 { font-size: 34px; letter-spacing: -1.3px; }
+  .welcome-copy > p { font-size: 14px; }
+  .welcome-buttons { flex-direction: column; align-items: stretch; margin-top: 24px; }
+  .welcome-preview { padding: 14px; border-radius: 14px; }
+  .preview-card { padding: 19px; }
+  .change-card { padding: 17px; }
+  .change-actions .btn { flex: 1 1 auto; }
+  .change-top { flex-direction: column; gap: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+.mobile-menu {display:none}
+@media(max-width:1000px){.mobile-menu{display:inline-flex;font-size:26px}}
+
+.plan-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}.plan-toolbar .eyebrow{margin:0}.plan-toolbar .header-actions{flex-wrap:wrap}.language button{min-width:32px}
+
+.ai-wide{grid-column:1/-1}.ai-small{font-size:11px;color:#65758a;line-height:1.65;white-space:normal}.ai-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.ai-tabs .btn{font-size:12px}.ai-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ai-estimator{border:1px solid #dce5f1;padding:12px;border-radius:8px;margin:4px 0;color:#17345e}.ai-estimator summary{cursor:pointer;font-size:12px;font-weight:600}.ai-estimator[open] summary{margin-bottom:14px}.ai-estimator p{margin-bottom:6px}.ai-draft{margin:0;min-width:0;border:1px solid #dce5f1;border-radius:10px;padding:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ai-draft legend{padding:0 7px;color:#17345e}.ai-draft>.ai-small{grid-column:1/-1}.ai-draft input,.ai-draft select{font-size:12px}.ai-tabs+.ai-small{margin-bottom:18px}#ai-estimate-result{font-size:14px;color:#17345e}.ai-wide[hidden]{display:none}@media(max-width:520px){.ai-fields,.ai-draft{grid-template-columns:1fr}.ai-tabs .btn{flex:1;white-space:normal}}
+</style></head>
+<body><div id="app"></div><div id="modal-root"></div><div id="toast" class="toast" role="status" aria-live="polite" hidden></div><script type="module">/** Pure one-week scheduling rules. All offsets are minutes from Monday 00:00. */
+const SLOT_MINUTES = 30;
+const WEEK_MINUTES = 7 * 24 * 60;
+
+const priorities = { high: 0, medium: 1, low: 2 };
+const clone = value => JSON.parse(JSON.stringify(value));
+const overlaps = (a, b) => a.start < b.end && b.start < a.end;
+const minutes = session => session.end - session.start;
+const roundUp = value => Math.ceil(value / SLOT_MINUTES) * SLOT_MINUTES;
+
+function parseTime(value, end = false) {
+  if (typeof value !== 'string' || !/^\d{2}:\d{2}$/.test(value)) return NaN;
+  const [h, m] = value.split(':').map(Number);
+  if (m > 59 || h > 24 || h === 24 && (!end || m !== 0)) return NaN;
+  return h * 60 + m;
+}
+
+function availabilityRanges(state) {
+  return state.availability.map(a => ({
+    start: a.day * 1440 + parseTime(a.start),
+    end: a.day * 1440 + parseTime(a.end, true),
+  })).sort((a, b) => a.start - b.start);
+}
+
+function availableSlots(state, occupied = []) {
+  const slots = [];
+  for (const range of availabilityRanges(state)) {
+    for (let start = roundUp(Math.max(range.start, state.now)); start + SLOT_MINUTES <= range.end; start += SLOT_MINUTES) {
+      const slot = { start, end: start + SLOT_MINUTES };
+      if (!occupied.some(s => overlaps(slot, s))) slots.push(slot);
+    }
+  }
+  return slots;
+}
+
+/** Validate inputs without mutating or discarding user data. */
+function validateState(state) {
+  const errors = [];
+  if (!state || typeof state !== 'object') return { valid: false, errors: ['Planner data is missing.'] };
+  if (!Array.isArray(state.tasks)) errors.push('Tasks must be a list.');
+  if (!Array.isArray(state.availability)) errors.push('Available study periods must be a list.');
+  if (!Array.isArray(state.sessions)) errors.push('Study sessions must be a list.');
+  if (state.rejectedProposals !== undefined && (!Array.isArray(state.rejectedProposals) || state.rejectedProposals.some(id => typeof id !== 'string'))) errors.push('Saved suggestion decisions are invalid.');
+  if (!Number.isFinite(state.now) || state.now < 0 || state.now > WEEK_MINUTES) errors.push('The planning time must be inside this week.');
+  if (errors.length) return { valid: false, errors };
+  const ids = new Set();
+  for (const task of state.tasks) {
+    if (!task || typeof task.id !== 'string' || !task.id || ids.has(task.id)) errors.push('Every task needs a unique ID.');
+    if (task?.id) ids.add(task.id);
+    if (typeof task?.title !== 'string' || !task.title.trim()) errors.push('Every task needs a title.');
+    if (!Number.isInteger(task?.duration) || task.duration <= 0 || task.duration > WEEK_MINUTES || task.duration % SLOT_MINUTES) errors.push('Task durations must use positive 30-minute units.');
+    if (!Number.isInteger(task?.deadline) || task.deadline < 1 || task.deadline > WEEK_MINUTES) errors.push('Every deadline must be inside this planning week.');
+    if (!(task?.priority in priorities)) errors.push('Task priority must be high, medium, or low.');
+  }
+  const availabilityIds = new Set();
+  for (const a of state.availability) {
+    if (!a || typeof a.id !== 'string' || !a.id || availabilityIds.has(a.id)) errors.push('Every study period needs a unique ID.');
+    if (a?.id) availabilityIds.add(a.id);
+    const start = parseTime(a?.start), end = parseTime(a?.end, true);
+    if (!Number.isInteger(a?.day) || a.day < 0 || a.day > 6 || !Number.isFinite(start) || !Number.isFinite(end) || end <= start) errors.push('Study periods need a valid day and an end time after their start time.');
+    else if (start % SLOT_MINUTES || end % SLOT_MINUTES) errors.push('Available study periods must start and end on a half hour.');
+  }
+  if (!errors.length) {
+    const ranges = availabilityRanges(state);
+    if (ranges.some((r, i) => i > 0 && overlaps(ranges[i - 1], r))) errors.push('Available study periods cannot overlap.');
+  }
+  const sessionIds = new Set();
+  for (const s of state.sessions) {
+    if (!s || typeof s.id !== 'string' || !s.id || sessionIds.has(s.id)) errors.push('Every study session needs a unique ID.');
+    if (s?.id) sessionIds.add(s.id);
+    if (!ids.has(s?.taskId)) errors.push('A study session refers to a task that no longer exists.');
+    if (!Number.isInteger(s?.start) || !Number.isInteger(s?.end) || s.start < 0 || s.end > WEEK_MINUTES || s.end <= s.start || (s.end - s.start) % SLOT_MINUTES) errors.push('Study sessions must have a valid duration in 30-minute units.');
+    if (!['planned', 'completed', 'missed'].includes(s?.status)) errors.push('A study session has an invalid status.');
+  }
+  return { valid: !errors.length, errors: [...new Set(errors)] };
+}
+
+/** Check accepted sessions against all hard constraints. Missed work never counts as completed. */
+function validatePlan(state, sessions = state?.sessions) {
+  const basic = validateState({ ...state, sessions });
+  if (!basic.valid) return basic;
+  const errors = [];
+  const ranges = availabilityRanges(state);
+  const active = sessions.filter(s => s.status !== 'missed');
+  for (const session of sessions.filter(s => s.status === 'planned')) {
+    const task = state.tasks.find(t => t.id === session.taskId);
+    if (session.start < state.now) errors.push(`“${task.title}” is scheduled in the past.`);
+    if (session.end > task.deadline) errors.push(`“${task.title}” would finish after its deadline.`);
+    if (!ranges.some(r => session.start >= r.start && session.end <= r.end)) errors.push(`“${task.title}” is outside your available study hours.`);
+    if (sessions.some(other => other.status === 'missed' && overlaps(session, other))) errors.push(`“${task.title}” overlaps a missed study period.`);
+  }
+  const sorted = [...active].sort((a, b) => a.start - b.start || a.end - b.end);
+  if (sorted.some((s, i) => i > 0 && overlaps(sorted[i - 1], s))) errors.push('Study sessions overlap.');
+  for (const task of state.tasks) {
+    const allocated = active.filter(s => s.taskId === task.id).reduce((sum, s) => sum + minutes(s), 0);
+    if (allocated > task.duration) errors.push(`“${task.title}” has more completed and planned time than it needs.`);
+  }
+  return { valid: !errors.length, errors: [...new Set(errors)] };
+}
+
+function summarize(state, sessions) {
+  const byTask = state.tasks.map(task => {
+    const own = sessions.filter(s => s.taskId === task.id);
+    const completed = own.filter(s => s.status === 'completed').reduce((sum, s) => sum + minutes(s), 0);
+    const planned = own.filter(s => s.status === 'planned').reduce((sum, s) => sum + minutes(s), 0);
+    return { taskId: task.id, required: task.duration, completed, planned, unscheduled: Math.max(0, task.duration - completed - planned) };
+  });
+  const sum = key => byTask.reduce((total, t) => total + t[key], 0);
+  return {
+    required: sum('required'), completed: sum('completed'), planned: sum('planned'), unscheduled: sum('unscheduled'),
+    available: availableSlots(state).length * SLOT_MINUTES,
+    free: availableSlots(state, sessions).length * SLOT_MINUTES,
+    byTask,
+  };
+}
+
+function invalidResult(state, errors) {
+  return { sessions: Array.isArray(state?.sessions) ? clone(state.sessions) : [], summary: null, errors };
+}
+
+/** Earliest-deadline scheduling. Existing approved sessions remain fixed unless explicitly reset. */
+function buildPlan(state, { preserveApproved = true } = {}) {
+  const basic = validateState(state);
+  if (!basic.valid) return invalidResult(state, basic.errors);
+  const sessions = clone(state.sessions.filter(s => preserveApproved || s.status !== 'planned'));
+  const valid = validatePlan(state, sessions);
+  if (!valid.valid) return invalidResult(state, valid.errors);
+  const free = availableSlots(state, sessions);
+  const tasks = [...state.tasks].sort((a, b) => a.deadline - b.deadline || priorities[a.priority] - priorities[b.priority] || a.id.localeCompare(b.id));
+  for (const task of tasks) {
+    const accounted = sessions.filter(s => s.taskId === task.id && s.status !== 'missed').reduce((sum, s) => sum + minutes(s), 0);
+    let remaining = Math.max(0, task.duration - accounted);
+    let previous = null;
+    for (let i = 0; i < free.length && remaining > 0; i++) {
+      const slot = free[i];
+      if (!slot || slot.end > task.deadline) continue;
+      if (previous && previous.end === slot.start && availabilityRanges(state).some(r => previous.start >= r.start && slot.end <= r.end)) {
+        previous.end = slot.end;
+        previous.id = `auto-${task.id}-${previous.start}-${previous.end}`;
+      } else {
+        previous = { id: `auto-${task.id}-${slot.start}-${slot.end}`, taskId: task.id, start: slot.start, end: slot.end, status: 'planned' };
+        sessions.push(previous);
+      }
+      free[i] = null;
+      remaining -= SLOT_MINUTES;
+    }
+  }
+  sessions.sort((a, b) => a.start - b.start || a.id.localeCompare(b.id));
+  return { sessions, summary: summarize(state, sessions), errors: [] };
+}
+
+/** Recovery suggestions only add sessions; they do not move already accepted sessions. */
+function proposeChanges(state) {
+  const result = buildPlan(state);
+  if (result.errors.length) return { proposals: [], summary: null, projectedSummary: null, errors: result.errors };
+  const existing = new Set(state.sessions.map(s => s.id));
+  const suppressed = new Set(state.rejectedProposals || []);
+  const proposals = result.sessions.filter(s => !existing.has(s.id)).map(s => {
+    const task = state.tasks.find(t => t.id === s.taskId);
+    return {
+      id: `proposal-${s.taskId}-${s.start}-${s.end}`, taskId: s.taskId, start: s.start, end: s.end,
+      reason: `Place ${minutes(s)} minutes of unfinished work before the deadline, inside your available hours. Your accepted sessions stay where they are.`,
+      title: task.title,
+    };
+  }).filter(p => !suppressed.has(p.id));
+  const projected = [...state.sessions, ...proposals.map(p => ({ ...p, id: `auto-${p.taskId}-${p.start}-${p.end}`, status: 'planned' }))];
+  return { proposals, summary: summarize(state, state.sessions), projectedSummary: summarize(state, projected), errors: [] };
+}
+
+/** Accept, edit, or reject a single suggestion with no hidden changes to other sessions. */
+function applyProposal(state, proposal, action, customStart) {
+  const basic = validateState(state);
+  if (!basic.valid) return { ok: false, state, error: basic.errors[0] };
+  if (!['accept', 'edit', 'reject'].includes(action)) return { ok: false, state, error: 'Choose accept, edit, or reject.' };
+  const task = state.tasks.find(t => t.id === proposal?.taskId);
+  if (!task || typeof proposal?.id !== 'string' || !Number.isInteger(proposal?.start) || !Number.isInteger(proposal?.end) || proposal.end <= proposal.start) return { ok: false, state, error: 'This suggestion is no longer valid. Review the plan again.' };
+  const next = clone(state);
+  if (action === 'reject') {
+    next.rejectedProposals = [...new Set([...(next.rejectedProposals || []), proposal.id])];
+    return { ok: true, state: next };
+  }
+  const start = action === 'edit' ? customStart : proposal.start;
+  if (!Number.isInteger(start) || start % SLOT_MINUTES) return { ok: false, state, error: 'Choose a start time on a half hour.' };
+  const duration = proposal.end - proposal.start;
+  const session = { id: `auto-${proposal.taskId}-${start}-${start + duration}`, taskId: proposal.taskId, start, end: start + duration, status: 'planned' };
+  const validation = validatePlan(state, [...next.sessions, session]);
+  if (!validation.valid) return { ok: false, state, error: validation.errors[0] };
+  next.sessions.push(session);
+  next.sessions.sort((a, b) => a.start - b.start || a.id.localeCompare(b.id));
+  next.rejectedProposals = (next.rejectedProposals || []).filter(id => !id.startsWith(`proposal-${task.id}-`));
+  return { ok: true, state: next };
+}
+
+
+const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>globalThis.crypto?.randomUUID?.()||'id-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+const KEY='study-planner-v1', FK='study-planner-feedback-v1', LANGUAGE_KEY='study-planner-local-language-v2';
+let lang='en', view='welcome', state=null, review=[], feedback=[], storageOK=true, toastTimer;
+const dictionary={
+  "ru": {
+    "plan": "Мой план",
+    "tasks": "Задания",
+    "availability": "Свободное время",
+    "feedback": "Обратная связь",
+    "saved": "Сохранено на устройстве",
+    "unsaved": "Не сохранено",
+    "brandSub": "",
+    "welcomeKicker": "AI STUDY PLANNER",
+    "welcomeTitle": "Учись с умом, а не через силу",
+    "welcomeText": "Пропустил занятие? Найди место для незавершённой работы — и реши, какие изменения принять.",
+    "tryDemo": "Посмотреть пример плана",
+    "startEmpty": "Создать свой план",
+    "demoNote": "Без регистрации · Данные остаются в этом браузере",
+    "welcomePreview": "Небольшое изменение. Реалистичный план.",
+    "missedSession": "Пропущенное занятие",
+    "proposedTime": "Предложенное время",
+    "yourApproval": "Каждое изменение — с твоего согласия",
+    "week": "Учебная неделя",
+    "planTitle": "",
+    "planSubtitle": "",
+    "taskSubtitle": "Небольшой список. Понятные сроки и оценки времени.",
+    "availSubtitle": "Выбери только те часы, которые готов посвятить учёбе. Отдых останется свободным.",
+    "feedbackSubtitle": "Что помогло, а что стоило бы изменить?",
+    "addTask": "Добавить задание",
+    "addBlock": "Добавить время",
+    "build": "Составить план",
+    "rebuild": "Пересоздать план",
+    "recover": "Предложить изменения",
+    "review": "Проверить изменения",
+    "reviewTitle": "Ты решаешь, что изменить.",
+    "reviewSubtitle": "Ни одно предложение не применяется автоматически.",
+    "accept": "Принять",
+    "reject": "Отклонить",
+    "edit": "Изменить",
+    "done": "Готово",
+    "miss": "Пропуск",
+    "completed": "Выполнено",
+    "planned": "В плане",
+    "unscheduled": "Без времени",
+    "available": "Доступно",
+    "free": "Свободно",
+    "remaining": "Осталось",
+    "hours": "ч",
+    "minutes": "мин",
+    "demo": "Пример",
+    "personal": "Мой план",
+    "clock": "Время в прототипе",
+    "emptyPlan": "Пока здесь свободно",
+    "emptyPlanText": "Добавь задания и доступные часы, затем составь первый план.",
+    "emptyTasks": "Начни с одного задания",
+    "emptyTasksText": "Укажи срок и примерное время на работу.",
+    "emptyAvail": "Сколько времени есть на учёбу?",
+    "emptyAvailText": "Добавь несколько свободных блоков. Мы используем только их.",
+    "emptyReview": "Изменений пока нет",
+    "emptyReviewText": "Отметь пропуск в плане или добавь незапланированную работу, затем запроси предложения.",
+    "allFits": "Для всей оставшейся работы есть время.",
+    "shortfall": "Часть работы пока без времени",
+    "shortfallText": "Свободные часы после дедлайна не помогут выполнить задание вовремя. Измени доступность или приоритеты осознанно.",
+    "needsSetup": "Для начала нужны задания и свободные часы.",
+    "nextStep": "Следующий шаг",
+    "nextStepText": "Отметь первое занятие выполненным или пропущенным. Так ты проверишь, как план меняется.",
+    "demoClockNote": "Это тестовая неделя. «Готово» и «Пропуск» продвигают время внутри примера.",
+    "noSessions": "Без занятий",
+    "protected": "Остальное время свободно",
+    "taskTitle": "Название задания",
+    "course": "Курс",
+    "duration": "Оценка времени",
+    "deadline": "Дедлайн",
+    "day": "День",
+    "time": "Время",
+    "start": "Начало",
+    "end": "Конец",
+    "priority": "Приоритет",
+    "high": "Высокий",
+    "medium": "Обычный",
+    "low": "Низкий",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "close": "Закрыть",
+    "optional": "необязательно",
+    "feedbackTitle": "Помоги сделать план удобнее",
+    "rating": "Насколько ты контролировал изменения?",
+    "ratingHint": "1 — совсем не контролировал, 5 — полностью контролировал",
+    "participant": "Код участника",
+    "comment": "Что было полезно или непонятно?",
+    "commentPlaceholder": "Например: не сразу понял, почему занятие переместилось…",
+    "submitFeedback": "Сохранить отзыв",
+    "export": "Скачать отзывы",
+    "exportPlan": "Скачать план",
+    "noFeedback": "Отзывов пока нет",
+    "feedbackLocal": "Отзыв сохранится только в этом браузере. Скачай файл, чтобы передать его команде.",
+    "feedbackSaved": "Спасибо! Отзыв сохранён на этом устройстве.",
+    "reset": "Сбросить план",
+    "loadDemo": "Пример плана",
+    "about": "О прототипе",
+    "aboutText": "Учебный MVP AI Study Planner. Расписание строится по правилам и учитывает сроки, свободные блоки и выполненную работу. Внешний ИИ и LMS не подключены. Данные примера — демонстрационные. Отзывы не отправляются команде автоматически.",
+    "noRoom": "Подходящего свободного времени до дедлайна не найдено.",
+    "suggestion": "Незавершённая работа → свободный блок до дедлайна.",
+    "proposalCount": "предложений",
+    "back": "К плану",
+    "reviewAgain": "Найти новые варианты",
+    "emptyChanges": "Все предложения рассмотрены",
+    "rejectedNote": "Отклонённая работа остаётся без времени. Новые варианты появятся только по твоему запросу.",
+    "confirmReset": "Создать пустой план? Задания и расписание будут удалены. Сохранённые отзывы останутся.",
+    "confirmDemo": "Загрузить пример вместо текущего плана? Отзывы сохранятся.",
+    "confirmRebuild": "Пересоздать будущий план? Текущее размещение занятий изменится. Выполненная работа сохранится.",
+    "confirmEdit": "Изменение затронет будущие занятия. Они будут сняты с плана; выполненная работа сохранится. Продолжить?",
+    "confirmDelete": "Удалить задание и связанные с ним занятия?",
+    "invalid": "Проверь данные: срок, длительность и свободные блоки должны быть корректными.",
+    "conflict": "Этот вариант пересекается с занятием, выходит за доступные часы или заканчивается после дедлайна.",
+    "storage": "Браузер не разрешает сохранять данные. Пока вкладка открыта, план доступен; скачай его перед закрытием.",
+    "corrupt": "Сохранённые данные не удалось прочитать. Можно открыть новый пример или начать заново.",
+    "earliestOnly": "Сначала заверши или пропусти самое раннее занятие.",
+    "savedPlan": "План обновлён",
+    "clearFeedback": "Удалить отзывы",
+    "confirmClearFeedback": "Удалить все сохранённые отзывы с этого устройства?",
+    "noPlans": "Сначала добавь задания.",
+    "completedEstimate": "Оценка не может быть меньше уже выполненного времени.",
+    "timeUnit": "Длительность кратна 30 минутам.",
+    "feedbackCount": "Сохранённые отзывы",
+    "workflow": "Добавь задания → выбери часы → составь план",
+    "scheduleEmpty": "План ещё не составлен",
+    "testBadge": "",
+    "taskCount": "заданий",
+    "declined": "Предложение отклонено. Работа не отмечена выполненной.",
+    "accepted": "Изменение принято",
+    "weekLabel": "Неделя",
+    "formError": "Не удалось сохранить. Проверь поля формы.",
+    "noticeCompletion": "Выполненная работа учитывается; пропущенная остаётся незавершённой.",
+    "actions": "Действия",
+    "exportError": "Не удалось создать JPG. Попробуй ещё раз.",
+    "downloadReady": "План скачан в JPG.",
+    "study": "Учёба",
+    "availableHours": "Доступные часы"
+  },
+  "en": {
+    "plan": "My plan",
+    "tasks": "Tasks",
+    "availability": "Available time",
+    "feedback": "Feedback",
+    "saved": "Saved on this device",
+    "unsaved": "Not saved",
+    "brandSub": "",
+    "welcomeKicker": "AI STUDY PLANNER",
+    "welcomeTitle": "Study Smarter, Not Harder",
+    "welcomeText": "Missed a study session? Find room for unfinished work — and decide which changes to accept.",
+    "tryDemo": "View example plan",
+    "startEmpty": "Create your plan",
+    "demoNote": "No account needed · Data stays in this browser",
+    "welcomePreview": "A small change. A realistic plan.",
+    "missedSession": "Missed session",
+    "proposedTime": "Suggested time",
+    "yourApproval": "Every change starts with your approval",
+    "week": "Study week",
+    "planTitle": "",
+    "planSubtitle": "",
+    "taskSubtitle": "A short list. Clear deadlines and time estimates.",
+    "availSubtitle": "Choose only the time you can give to study. The rest stays free.",
+    "feedbackSubtitle": "What helped? What could be clearer?",
+    "addTask": "Add a task",
+    "addBlock": "Add available time",
+    "build": "Create plan",
+    "rebuild": "Rebuild plan",
+    "recover": "Suggest changes",
+    "review": "Review changes",
+    "reviewTitle": "You decide what changes.",
+    "reviewSubtitle": "No suggestion is applied automatically.",
+    "accept": "Accept",
+    "reject": "Decline",
+    "edit": "Edit",
+    "done": "Done",
+    "miss": "Missed",
+    "completed": "Completed",
+    "planned": "Scheduled",
+    "unscheduled": "Unscheduled",
+    "available": "Available",
+    "free": "Free",
+    "remaining": "Remaining",
+    "hours": "h",
+    "minutes": "min",
+    "demo": "Example",
+    "personal": "My plan",
+    "clock": "Prototype time",
+    "emptyPlan": "A little room to begin",
+    "emptyPlanText": "Add tasks and available hours, then create your first plan.",
+    "emptyTasks": "Start with one task",
+    "emptyTasksText": "Add its deadline and the time you expect it to take.",
+    "emptyAvail": "How much time do you have?",
+    "emptyAvailText": "Add a few available blocks. We only schedule inside them.",
+    "emptyReview": "No changes to review yet",
+    "emptyReviewText": "Mark a missed session or add unfinished work, then ask for suggestions.",
+    "allFits": "All remaining work has a place in your plan.",
+    "shortfall": "Some work still needs time",
+    "shortfallText": "Hours after a deadline cannot help finish a task on time. Adjust availability or priorities deliberately.",
+    "needsSetup": "Add tasks and available hours first.",
+    "nextStep": "Your next step",
+    "nextStepText": "Mark the earliest session done or missed to explore how recovery works.",
+    "demoClockNote": "This is a test week. Done and Missed advance time inside the example.",
+    "noSessions": "No sessions",
+    "protected": "Other time stays free",
+    "taskTitle": "Task name",
+    "course": "Course",
+    "duration": "Time estimate",
+    "deadline": "Deadline",
+    "day": "Day",
+    "time": "Time",
+    "start": "Start",
+    "end": "End",
+    "priority": "Priority",
+    "high": "High",
+    "medium": "Normal",
+    "low": "Low",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close",
+    "optional": "optional",
+    "feedbackTitle": "Help make planning clearer",
+    "rating": "How much control did you have?",
+    "ratingHint": "1 — no control, 5 — full control",
+    "participant": "Participant code",
+    "comment": "What was useful or confusing?",
+    "commentPlaceholder": "For example: it was not clear why the session moved…",
+    "submitFeedback": "Save feedback",
+    "export": "Download feedback",
+    "exportPlan": "Download plan",
+    "noFeedback": "No feedback yet",
+    "feedbackLocal": "Feedback stays in this browser. Download the file to share it with the team.",
+    "feedbackSaved": "Thank you! Feedback saved on this device.",
+    "reset": "Reset plan",
+    "loadDemo": "Example plan",
+    "about": "About this prototype",
+    "aboutText": "AI Study Planner coursework MVP. Rule-based scheduling considers deadlines, available blocks and completed work. No external AI or LMS is connected. Example tasks are demonstration data. Feedback is not sent to the team automatically.",
+    "noRoom": "No suitable available time was found before the deadline.",
+    "suggestion": "Unfinished work → an available block before the deadline.",
+    "proposalCount": "suggestions",
+    "back": "Back to plan",
+    "reviewAgain": "Find new options",
+    "emptyChanges": "All suggestions reviewed",
+    "rejectedNote": "Declined work remains unfinished. New options are generated only when you ask.",
+    "confirmReset": "Create an empty plan? Tasks and sessions will be deleted. Saved feedback will remain.",
+    "confirmDemo": "Replace your current plan with the example? Feedback will stay saved.",
+    "confirmRebuild": "Rebuild future sessions? Their placement will change. Completed work will be preserved.",
+    "confirmEdit": "This edit affects future sessions. They will be removed from the plan; completed work will stay. Continue?",
+    "confirmDelete": "Delete this task and its sessions?",
+    "invalid": "Check the deadline, duration and availability.",
+    "conflict": "This time overlaps another session, falls outside availability, or ends after the deadline.",
+    "storage": "Browser storage is unavailable. Your plan works in this tab; download it before closing.",
+    "corrupt": "Saved data could not be read. Open a fresh example or start again.",
+    "earliestOnly": "Complete or miss the earliest session first.",
+    "savedPlan": "Plan updated",
+    "clearFeedback": "Delete feedback",
+    "confirmClearFeedback": "Delete all feedback saved on this device?",
+    "noPlans": "Add tasks first.",
+    "completedEstimate": "Estimate cannot be less than work already completed.",
+    "timeUnit": "Use multiples of 30 minutes.",
+    "feedbackCount": "Saved feedback",
+    "workflow": "Add tasks → choose hours → create a plan",
+    "scheduleEmpty": "No plan yet",
+    "testBadge": "",
+    "taskCount": "tasks",
+    "declined": "Suggestion declined. The work is still unfinished.",
+    "accepted": "Change accepted",
+    "weekLabel": "Week",
+    "formError": "Could not save. Check the form fields.",
+    "noticeCompletion": "Completed work counts; missed work remains unfinished.",
+    "actions": "Actions",
+    "exportError": "Could not create the JPG. Please try again.",
+    "downloadReady": "Your plan has been downloaded as a JPG.",
+    "study": "Study",
+    "availableHours": "Available hours"
+  },
+  "kk": {
+    "plan": "Менің жоспарым",
+    "tasks": "Тапсырмалар",
+    "availability": "Бос уақыт",
+    "feedback": "Кері байланыс",
+    "saved": "Осы құрылғыда сақталды",
+    "unsaved": "Сақталмады",
+    "brandSub": "",
+    "welcomeKicker": "AI STUDY PLANNER",
+    "welcomeTitle": "Қиналып емес, ақылмен оқы",
+    "welcomeText": "Сабаққа уақыт бөле алмадың ба? Аяқталмаған жұмысқа уақыт тауып, қай өзгерісті қабылдайтыныңды өзің шеш.",
+    "tryDemo": "Жоспар үлгісін көру",
+    "startEmpty": "Өз жоспарымды құру",
+    "demoNote": "Тіркелу қажет емес · Деректер осы браузерде қалады",
+    "welcomePreview": "Шағын өзгеріс. Орындалатын жоспар.",
+    "missedSession": "Өткізіп алған сабақ",
+    "proposedTime": "Ұсынылған уақыт",
+    "yourApproval": "Әр өзгеріс сенің келісіміңмен жасалады",
+    "week": "Оқу аптасы",
+    "planTitle": "",
+    "planSubtitle": "",
+    "taskSubtitle": "Нақты мерзімдер мен жұмысқа қажет уақыт.",
+    "availSubtitle": "Оқуға және тапсырмаларға бөле алатын уақытты ғана таңда. Қалған уақыт бос қалады.",
+    "feedbackSubtitle": "Не көмектесті? Нені түсініктірек ету керек?",
+    "addTask": "Тапсырма қосу",
+    "addBlock": "Бос уақыт қосу",
+    "build": "Жоспар құру",
+    "rebuild": "Қайта жоспарлау",
+    "recover": "Өзгеріс ұсыну",
+    "review": "Өзгерістерді қарау",
+    "reviewTitle": "Нені өзгертуді өзің шешесің.",
+    "reviewSubtitle": "Ешбір ұсыныс автоматты түрде қолданылмайды.",
+    "accept": "Қабылдау",
+    "reject": "Қабылдамау",
+    "edit": "Өзгерту",
+    "done": "Дайын",
+    "miss": "Өткізіп алдым",
+    "completed": "Орындалды",
+    "planned": "Жоспарда",
+    "unscheduled": "Уақыты белгіленбеген",
+    "available": "Қолжетімді",
+    "free": "Бос",
+    "remaining": "Қалды",
+    "hours": "сағ",
+    "minutes": "мин",
+    "demo": "Мысал",
+    "personal": "Менің жоспарым",
+    "clock": "Прототиптегі уақыт",
+    "emptyPlan": "Жоспарды бастайық",
+    "emptyPlanText": "Тапсырмалар мен бос уақытты қосып, алғашқы жоспарыңды құр.",
+    "emptyTasks": "Бір тапсырмадан баста",
+    "emptyTasksText": "Мерзімі мен орындауға қажет уақытты көрсет.",
+    "emptyAvail": "Қанша бос уақытың бар?",
+    "emptyAvailText": "Бірнеше бос уақыт аралығын қос. Жоспарда тек сол уақыт қолданылады.",
+    "emptyReview": "Қарайтын өзгерістер әлі жоқ",
+    "emptyReviewText": "Өткізіп алған сабақты белгіле немесе аяқталмаған жұмыс қос. Содан кейін ұсыныстарды сұра.",
+    "allFits": "Қалған жұмыстың бәріне жоспарда уақыт бар.",
+    "shortfall": "Кейбір жұмысқа уақыт жетпейді",
+    "shortfallText": "Мерзімінен кейінгі бос уақыт тапсырманы уақытында бітіруге көмектеспейді. Бос уақытты немесе басымдықтарды қайта қара.",
+    "needsSetup": "Алдымен тапсырмалар мен бос уақытты қос.",
+    "nextStep": "Келесі қадам",
+    "nextStepText": "Бірінші сабақты орындалды немесе өткізіп алдым деп белгіле. Жоспардың қалай өзгеретінін көр.",
+    "demoClockNote": "Бұл — сынақ аптасы. «Дайын» және «Өткізіп алдым» әрекеттері мысал ішіндегі уақытты алға жылжытады.",
+    "noSessions": "Сабақ жоқ",
+    "protected": "Қалған уақыт бос",
+    "taskTitle": "Тапсырма атауы",
+    "course": "Пән",
+    "duration": "Қажет уақыт",
+    "deadline": "Соңғы мерзім",
+    "day": "Күн",
+    "time": "Уақыт",
+    "start": "Басталуы",
+    "end": "Аяқталуы",
+    "priority": "Басымдық",
+    "high": "Жоғары",
+    "medium": "Қалыпты",
+    "low": "Төмен",
+    "save": "Сақтау",
+    "cancel": "Бас тарту",
+    "delete": "Жою",
+    "close": "Жабу",
+    "optional": "міндетті емес",
+    "feedbackTitle": "Жоспарды ыңғайлы етуге көмектес",
+    "rating": "Өзгерістерді қаншалықты басқара алдың?",
+    "ratingHint": "1 — мүлде басқара алмадым, 5 — толық басқардым",
+    "participant": "Қатысушы коды",
+    "comment": "Не пайдалы болды немесе түсініксіз болды?",
+    "commentPlaceholder": "Мысалы: сабақтың неге ауыстырылғанын бірден түсінбедім…",
+    "submitFeedback": "Пікірді сақтау",
+    "export": "Пікірлерді жүктеу",
+    "exportPlan": "Жоспарды жүктеу",
+    "noFeedback": "Пікірлер әлі жоқ",
+    "feedbackLocal": "Пікір тек осы браузерде сақталады. Командаға беру үшін файлды жүктеп ал.",
+    "feedbackSaved": "Рақмет! Пікір осы құрылғыда сақталды.",
+    "reset": "Жоспарды тазарту",
+    "loadDemo": "Жоспар үлгісі",
+    "about": "Прототип туралы",
+    "aboutText": "AI Study Planner — оқу жобасына арналған MVP. Жоспарлау ережелері мерзімдерді, бос уақытты, жеке оқиғаларды және орындалған жұмысты ескереді. Сыртқы жасанды интеллект пен LMS қосылмаған. Мысалдағы тапсырмалар көрсету үшін берілген. Пікірлер командаға автоматты түрде жіберілмейді.",
+    "noRoom": "Мерзімге дейін сәйкес бос уақыт табылмады.",
+    "suggestion": "Аяқталмаған жұмыс → мерзімге дейінгі бос уақыт.",
+    "proposalCount": "ұсыныс",
+    "back": "Жоспарға оралу",
+    "reviewAgain": "Жаңа нұсқалар табу",
+    "emptyChanges": "Барлық ұсыныстар қаралды",
+    "rejectedNote": "Қабылданбаған жұмыс аяқталмаған болып қалады. Жаңа нұсқалар тек сен сұрағанда ұсынылады.",
+    "confirmReset": "Бос жоспар құрғың келе ме? Тапсырмалар мен кесте жойылады. Сақталған пікірлер қалады.",
+    "confirmDemo": "Ағымдағы жоспарды мысалмен ауыстыру керек пе? Пікірлер сақталады.",
+    "confirmRebuild": "Алдағы сабақтарды қайта жоспарлау керек пе? Олардың уақыты өзгереді. Орындалған жұмыс сақталады.",
+    "confirmEdit": "Бұл өзгеріс алдағы сабақтарға әсер етеді. Олар жоспардан алынады; орындалған жұмыс сақталады. Жалғастыру керек пе?",
+    "confirmDelete": "Тапсырманы және оған қатысты сабақтарды жою керек пе?",
+    "invalid": "Мерзімді, ұзақтықты және бос уақытты тексер.",
+    "conflict": "Бұл уақыт басқа сабақпен немесе оқиғамен қабаттасады, бос уақыттан тыс орналасқан немесе мерзімнен кейін аяқталады.",
+    "storage": "Браузер деректерді сақтауға рұқсат бермейді. Жоспар осы қойынды ашық тұрғанда қолжетімді; жабар алдында жүктеп ал.",
+    "corrupt": "Сақталған деректерді оқу мүмкін болмады. Жаңа мысалды аш немесе қайта баста.",
+    "earliestOnly": "Алдымен ең ерте сабақты аяқта немесе өткізіп алғаныңды белгіле.",
+    "savedPlan": "Жоспар жаңартылды",
+    "clearFeedback": "Пікірлерді жою",
+    "confirmClearFeedback": "Осы құрылғыда сақталған барлық пікірді жою керек пе?",
+    "noPlans": "Алдымен тапсырмалар қос.",
+    "completedEstimate": "Қажет уақыт орындалған жұмыстың уақытынан аз болмауы керек.",
+    "timeUnit": "30 минутқа еселі уақытты қолдан.",
+    "feedbackCount": "Сақталған пікірлер",
+    "workflow": "Тапсырма қос → бос уақытты таңда → жоспар құр",
+    "scheduleEmpty": "Жоспар әлі құрылмаған",
+    "testBadge": "",
+    "taskCount": "тапсырма",
+    "declined": "Ұсыныс қабылданбады. Жұмыс әлі аяқталмаған.",
+    "accepted": "Өзгеріс қабылданды",
+    "weekLabel": "Апта",
+    "formError": "Сақтау мүмкін болмады. Формадағы өрістерді тексер.",
+    "noticeCompletion": "Орындалған жұмыс есепке алынады; өткізіп алған жұмыс аяқталмаған болып қалады.",
+    "actions": "Әрекеттер",
+    "exportError": "JPG жасау мүмкін болмады. Қайта көріңіз.",
+    "downloadReady": "Жоспар JPG форматында жүктелді.",
+    "study": "Оқу",
+    "availableHours": "Бос уақыт"
+  }
+};
+const t=k=>dictionary[lang][k]||k;
+const icon=(name)=>{const paths={grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',tasks:'<path d="m4 6 2 2 4-4M13 6h7M4 14l2 2 4-4M13 14h7M13 20h7"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',chat:'<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-2 2V11.5a9.5 9.5 0 0 1 19 0Z"/><path d="M7 10h9M7 14h6"/>',plus:'<path d="M12 5v14M5 12h14"/>',arrow:'<path d="M5 12h14m-5-5 5 5-5 5"/>',check:'<path d="m5 12 4 4L19 6"/>',download:'<path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/>',refresh:'<path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-2l2 7M4 12l2 7a7 7 0 0 0 12-2"/>',chevron:'<path d="m9 5 7 7-7 7"/>',x:'<path d="m6 6 12 12M18 6 6 18"/>',leaf:'<path d="M20 3C8 3 3 8 5 15c5 4 15 0 15-12Z"/><path d="M4 21 15 10"/>'};return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]||paths.grid}</svg>`};
+const button=(label,action,cls='secondary',extra='')=>`<button class="btn ${cls}" data-action="${action}" ${extra}>${label}</button>`;
+const fmt=n=>{n=Math.max(0,n||0);return n>=60?`${Math.floor(n/60)} ${t('hours')}${n%60?' '+n%60+' '+t('minutes'):''}`:`${n} ${t('minutes')}`};
+const time=n=>`${String(Math.floor((n%1440)/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
+const days=()=>({en:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],ru:['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],kk:['Дс','Сс','Ср','Бс','Жм','Сб','Жс']})[lang];
+const nextMonday=()=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+((8-d.getDay())%7||7));return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const dateFor=(day)=>{const d=new Date((state?.week||nextMonday())+'T12:00:00');d.setDate(d.getDate()+day);if(lang==='kk')return `${d.getDate()} ${['қаң.','ақп.','нау.','сәу.','мам.','мау.','шіл.','там.','қыр.','қаз.','қар.','жел.'][d.getMonth()]}`;return d.toLocaleDateString(lang==='ru'?'ru-RU':'en-GB',{day:'numeric',month:'short'})};
+const slotLabel=(start,end)=>`${days()[Math.floor(start/1440)]} ${time(start)}–${time(end)}`;
+const weekLabel=()=>`${dateFor(0)} — ${dateFor(6)}`;
+const summary=()=>proposeChanges(state).summary;
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify({version:1,state,review,lang}));localStorage.setItem(FK,JSON.stringify(feedback));storageOK=true;}catch{storageOK=false;}}
+function load(){
+try{const choice=localStorage.getItem(LANGUAGE_KEY);if(['en','ru','kk'].includes(choice))lang=choice;}catch{storageOK=false;}
+try{const raw=localStorage.getItem(KEY);if(raw){const data=JSON.parse(raw);if(data.version!==1||!data.state||!validateState(data.state).valid||!validatePlan(data.state,data.state.sessions).valid||!/^\d{4}-\d{2}-\d{2}$/.test(data.state.week))throw Error('bad data');state=data.state;review=Array.isArray(data.review)?data.review.filter(p=>p&&applyProposal(state,p,'accept').ok):[];view='welcome';}}
+catch(e){state=null;review=[];if(e.name==='SecurityError'){storageOK=false;}else queueMicrotask(()=>toast(t('corrupt')));}
+try{const f=JSON.parse(localStorage.getItem(FK)||'[]');feedback=Array.isArray(f)?f.filter(x=>x&&typeof x.comment==='string'&&x.comment.length<=2000&&Number.isInteger(x.rating)&&x.rating>=1&&x.rating<=5&&typeof x.at==='string'&&Number.isFinite(Date.parse(x.at))):[];}catch{feedback=[];}
+}
+function base(mode){return {tasks:[],availability:[],sessions:[],now:540,rejectedProposals:[],week:nextMonday(),mode};}
+function demo(){const s=base('demo');s.tasks=[{id:'lab',title:'Programming lab',course:'Python',duration:120,deadline:3*1440+1080,priority:'high'},{id:'math',title:'Problem set 4',course:'Mathematics',duration:90,deadline:2*1440+1080,priority:'high'},{id:'db',title:'SQL practice',course:'Databases',duration:90,deadline:4*1440+1080,priority:'medium'},{id:'slides',title:'Project presentation',course:'Entrepreneurship',duration:60,deadline:4*1440+1200,priority:'medium'},{id:'reading',title:'Read chapter 3',course:'Research methods',duration:60,deadline:6*1440+1200,priority:'low'}];s.availability=[0,1,2,3,4].map(day=>({id:'a'+day,day,start:'16:00',end:'18:00'}));s.sessions=[{id:'math-session',taskId:'math',start:960,end:1050,status:'planned'},{id:'lab-session',taskId:'lab',start:1440+960,end:1440+1080,status:'planned'},{id:'reading-session',taskId:'reading',start:2880+960,end:2880+1020,status:'planned'},{id:'db-session',taskId:'db',start:4320+960,end:4320+1050,status:'planned'},{id:'slides-session',taskId:'slides',start:5760+960,end:5760+1020,status:'planned'}];s.now=930;return s;}
+function toast(msg){clearTimeout(toastTimer);$('#toast').textContent=msg;$('#toast').hidden=false;toastTimer=setTimeout(()=>$('#toast').hidden=true,4800);}
+function brand(){return `<div class="brand"><span class="brand-mark">${icon('clock')}</span><div>AI Study Planner</div></div>`}
+function langs(){return `<div class="language" aria-label="Language">${[['en','EN','English'],['kk','KZ','Қазақша'],['ru','RU','Русский']].map(([code,label,name])=>`<button data-action="lang-${code}" lang="${code}" title="${name}" aria-label="${name}" aria-pressed="${lang===code}" class="${lang===code?'active':''}">${label}</button>`).join('')}</div>`}
+function render(){document.documentElement.lang=lang;document.title='AI Study Planner';if(view==='welcome'||!state){$('#app').innerHTML=`<div class="welcome-shell"><header class="topbar">${brand()}<div class="top-actions">${langs()}${button(t('about'),'about','ghost')}</div></header><main class="welcome"><div class="welcome-copy"><div class="welcome-kicker">${t('welcomeKicker')}</div><h1>${t('welcomeTitle').replace('\n','<br>')}</h1><p>${t('welcomeText')}</p><div class="welcome-buttons">${button(t('tryDemo')+' '+icon('arrow'),'demo','primary')}${button(state?t('plan'):t('startEmpty'),state?'view-plan':'empty')}</div><div class="footer-note">${t('demoNote')}</div></div><div class="welcome-preview"><div class="preview-card"><div class="preview-top"><span>${t('welcomePreview')}</span><span class="badge teal">${t('week')}</span></div><div class="preview-line"><span class="task-dot"></span><div><strong>Read chapter 3</strong><div class="task-meta">Research methods · 60 ${t('minutes')}</div></div></div><div class="preview-change"><div><span class="badge amber">${t('missedSession')}</span><p><s>Mon 16:00 — 17:00</s></p></div>${icon('arrow')}<div><span class="badge teal">${t('proposedTime')}</span><p>Wed 17:00 — 18:00</p></div></div><div class="preview-bottom">${icon('check')} ${t('yourApproval')}</div></div></div></main></div>`;return;}
+const navs=[['plan','grid'],['tasks','tasks'],['availability','clock'],['feedback','chat']];
+$('#app').innerHTML=`<div class="shell"><aside class="sidebar">${brand()}<nav class="nav">${navs.map(([v,i])=>`<button class="nav-item ${view===v||view==='review'&&v==='plan'?'active':''}" data-action="view-${v}">${icon(i)}<span>${t(v)}</span>${v==='tasks'?`<span class="nav-count">${state.tasks.length}</span>`:''}</button>`).join('')}</nav><div class="sidebar-foot">${button(icon('refresh')+t('loadDemo'),'demo','ghost small')}${button(t('reset'),'empty','ghost small')}${button(t('about'),'about','ghost small')}<p>${t('demoNote')}</p></div></aside><div class="main"><header class="topbar"><div class="breadcrumbs">${t('weekLabel')} <span>/</span> ${weekLabel()}</div><div class="top-actions"><span class="saved-indicator"><span></span>${t(storageOK?'saved':'unsaved')}</span>${langs()}<button class="icon-button mobile-menu" data-action="menu" aria-label="${t('actions')}">⋯</button></div></header><main class="content">${!storageOK?`<div class="notice warning">${t('storage')}</div>`:''}${view==='plan'?planPage():view==='tasks'?tasksPage():view==='availability'?availPage():view==='review'?reviewPage():feedbackPage()}</main></div></div>`;
+}
+function title(eyebrow,heading,subtitle,actions=''){return `<div class="page-header"><div><div class="eyebrow">${eyebrow}</div><h1>${heading}</h1><p class="subtitle">${subtitle}</p></div><div class="header-actions">${actions}</div></div>`}
+function planPage(){const s=summary(),planned=state.sessions.filter(x=>x.status==='planned'),first=[...planned].sort((a,b)=>a.start-b.start)[0];return `<div class="plan-toolbar"><span class="eyebrow">${t('week')} · ${weekLabel()}</span><div class="header-actions">${button(at('assistant'),'ai-open','secondary')}${button(t('loadDemo'),'demo','secondary')}${button(icon('plus')+t('addTask'),'add-task','secondary')}${button(t(planned.length?'rebuild':'build'),'build','primary')}</div></div>`+`<div class="stats"><div class="stat"><div class="stat-label">${t('available')}</div><div class="stat-value">${fmt(s.available)}</div><div class="stat-detail">${t('free')}: ${fmt(s.free)}</div></div><div class="stat"><div class="stat-label">${t('planned')}</div><div class="stat-value">${fmt(s.planned)}</div><div class="stat-detail">${t('completed')}: ${fmt(s.completed)}</div></div><div class="stat ${s.unscheduled?'stat-warning':''}"><div class="stat-label">${t('unscheduled')}</div><div class="stat-value">${fmt(s.unscheduled)}</div><div class="stat-detail">${s.unscheduled?t('shortfall'):t('allFits')}</div></div></div><div class="workspace"><section class="panel plan-panel"><div class="panel-header"><h2>${t('plan')}</h2><span class="badge ${state.mode==='demo'?'teal':'muted'}">${t(state.mode==='demo'?'demo':'personal')}</span></div><div class="week-toolbar"><span>${t('clock')}: <strong>${days()[Math.floor(state.now/1440)]||days()[6]} ${time(state.now)}</strong></span><button class="text-button" data-action="export-plan">${icon('download')}${t('exportPlan')}</button></div><div class="week-scroll"><div class="week-grid">${days().map((day,i)=>`<div class="day-column"><div class="day-head"><strong>${day}</strong><span class="day-date">${dateFor(i)}</span></div>${state.sessions.filter(x=>Math.floor(x.start/1440)===i).sort((a,b)=>a.start-b.start).map(x=>sessionCard(x,first?.id)).join('')||`<div class="day-free">${t('noSessions')}</div>`}<div class="day-capacity">${state.availability.filter(a=>a.day===i).map(a=>`${a.start}–${a.end}`).join('<br>')||'—'}</div></div>`).join('')}</div></div><div class="footer-note plan-note">${icon('clock')}${t('demoClockNote')}</div></section><div class="right-column"><section class="panel"><div class="panel-header"><h2>${t('nextStep')}</h2>${icon('arrow')}</div><div class="panel-body"><p>${t('nextStepText')}</p>${button(t('recover')+(review.length?` · ${review.length}`:''),'recover','primary full')}<p class="footer-note">${t('reviewSubtitle')}</p></div></section><section class="panel"><div class="panel-header"><h2>${t('tasks')}</h2><button class="icon-button" aria-label="${t('addTask')}" data-action="add-task">${icon('plus')}</button></div><div class="task-list">${s.byTask.map(row=>taskCompact(row)).join('')||`<div class="empty-state">${t('emptyTasks')}</div>`}</div></section></div></div>${s.unscheduled?`<div class="notice warning"><strong>${t('shortfall')} · ${fmt(s.unscheduled)}</strong><p>${t('shortfallText')}</p></div>`:''}${!state.tasks.length||!state.availability.length?`<div class="notice"><strong>${t('workflow')}</strong><p>${t('needsSetup')}</p>${button(t('addTask'),'add-task','small secondary')}${button(t('addBlock'),'add-block','small secondary')}</div>`:''}`;}
+function sessionCard(x,firstId){const task=state.tasks.find(t=>t.id===x.taskId);if(!task)return'';return `<article class="session ${x.status}"><div class="session-time">${time(x.start)}–${time(x.end)}</div><div class="session-title">${esc(task.title)}</div><div class="session-course">${esc(task.course)}</div>${x.status==='planned'&&x.id===firstId?`<div class="session-actions"><button data-action="done-session" data-id="${esc(x.id)}">${icon('check')}${t('done')}</button><button data-action="miss-session" data-id="${esc(x.id)}">${t('miss')}</button></div>`:`<div class="session-status">${x.status==='planned'?'':t(x.status==='completed'?'completed':'missedSession')}</div>`}</article>`;}
+function taskCompact(row){const task=state.tasks.find(x=>x.id===row.taskId);return `<div class="task-row"><span class="task-dot ${task.priority}"></span><div class="task-main"><strong>${esc(task.title)}</strong><div class="task-meta">${days()[Math.min(6,Math.floor(task.deadline/1440))]} ${time(task.deadline)}</div></div><span class="task-hours ${row.unscheduled?'warning-text':''}">${fmt(row.unscheduled||row.planned)}</span></div>`}
+function tasksPage(){const s=summary();return title('01 / '+t('tasks'),t('tasks'),t('taskSubtitle'),button(at('assistant'),'ai-open','secondary')+button(icon('plus')+t('addTask'),'add-task','primary'))+`<section class="panel">${!state.tasks.length?`<div class="empty-state"><h2>${t('emptyTasks')}</h2><p>${t('emptyTasksText')}</p>${button(t('addTask'),'add-task','primary')}</div>`:state.tasks.map(task=>{const row=s.byTask.find(x=>x.taskId===task.id);return `<div class="task-detail-row"><div class="task-dot ${task.priority}"></div><div class="task-main"><h3>${esc(task.title)}</h3><div class="task-meta">${esc(task.course)} · ${days()[Math.floor(task.deadline/1440)]} ${dateFor(Math.floor(task.deadline/1440))}, ${time(task.deadline)}</div><div class="task-meta">${t('duration')}: ${fmt(task.duration)} · ${t('completed')}: ${fmt(row.completed)} · ${t('unscheduled')}: ${fmt(row.unscheduled)}</div></div><span class="badge ${task.priority==='high'?'amber':'muted'}">${t(task.priority)}</span>${button(t('edit'),'edit-task','ghost small',`data-id="${esc(task.id)}"`)}</div>`}).join('')}</section>`;}
+function availPage(){return title('02 / '+t('availability'),t('availability'),t('availSubtitle'),button(icon('plus')+t('addBlock'),'add-block','primary'))+`<div class="section-stack">${days().map((day,i)=>`<section class="panel availability-day"><div class="panel-header"><h2>${day} <span class="muted-text">${dateFor(i)}</span></h2>${button(icon('plus'),'add-block','ghost small',`data-day="${i}" aria-label="${t('addBlock')} ${day}"`)}</div><div class="panel-body">${state.availability.filter(a=>a.day===i).sort((a,b)=>a.start.localeCompare(b.start)).map(a=>`<div class="availability-row"><span>${icon('clock')} ${a.start} — ${a.end}</span>${button(t('delete'),'delete-block','ghost small',`data-id="${esc(a.id)}"`)}</div>`).join('')||`<p class="muted-text">${t('protected')}</p>`}</div></section>`).join('')}</div>`;}
+function reviewPage(){const s=summary();return title(t('review'),t('reviewTitle'),t('reviewSubtitle'),button(t('back'),'view-plan','secondary'))+`<div class="review-layout"><section class="section-stack">${review.length?review.map(p=>{const task=state.tasks.find(x=>x.id===p.taskId);return `<article class="panel change-card"><div class="change-top"><span class="badge teal">${t('proposedTime')}</span><span>${fmt(p.end-p.start)}</span></div><h2 class="change-title">${esc(task?.title)}</h2><div class="change-time">${slotLabel(p.start,p.end)}</div><p class="change-reason">${t('suggestion')}</p><div class="change-actions">${button(icon('check')+t('accept'),'accept-change','primary',`data-id="${esc(p.id)}"`)}${button(t('edit'),'edit-change','secondary',`data-id="${esc(p.id)}"`)}${button(t('reject'),'reject-change','ghost',`data-id="${esc(p.id)}"`)}</div></article>`}).join(''):`<section class="panel empty-state"><span class="empty-icon">${icon('check')}</span><h2>${t('emptyChanges')}</h2><p>${s.unscheduled?t('rejectedNote'):t('allFits')}</p>${s.unscheduled?button(t('reviewAgain'),'recover','primary'):button(t('back'),'view-plan','primary')}</section>`}</section><aside class="panel review-summary"><div class="panel-header"><h2>${t('remaining')}</h2></div><div class="panel-body"><div class="metric-row"><span>${t('unscheduled')}</span><strong>${fmt(s.unscheduled)}</strong></div><div class="metric-row"><span>${t('free')}</span><strong>${fmt(s.free)}</strong></div><p class="footer-note">${t('noticeCompletion')}</p>${s.unscheduled&&!review.length&&!proposeChanges({...state,rejectedProposals:[]}).proposals.length?`<div class="notice warning">${t('noRoom')}</div>`:''}</div></aside></div>`;}
+function feedbackPage(){return title('03 / '+t('feedback'),t('feedbackTitle'),t('feedbackSubtitle'),button(icon('download')+t('export'),'export-feedback','secondary'))+`<div class="workspace"><section class="panel"><form id="feedback-form" class="panel-body form-grid"><div class="field"><label for="participant">${t('participant')} (${t('optional')})</label><input id="participant" name="participant" placeholder="P01" maxlength="20" autocomplete="off"></div><div class="field"><label for="rating">${t('rating')}</label><select id="rating" name="rating" required><option value="">—</option>${[1,2,3,4,5].map(n=>`<option value="${n}">${n}</option>`).join('')}</select><small>${t('ratingHint')}</small></div><div class="field"><label for="feedback-comment">${t('comment')}</label><textarea id="feedback-comment" name="comment" rows="5" maxlength="2000" placeholder="${t('commentPlaceholder')}" required></textarea></div><p class="footer-note">${t('feedbackLocal')}</p><div>${button(t('submitFeedback'),'submit-feedback','primary','type="submit"')}</div></form></section><section class="panel"><div class="panel-header"><h2>${t('feedbackCount')}</h2><span class="badge muted">${feedback.length}</span></div><div class="panel-body">${feedback.length?feedback.map(f=>`<div class="feedback-item"><div class="metric-row"><strong>${esc(f.participant||'—')}</strong><span>${f.rating}/5</span></div><p>${esc(f.comment)}</p><small>${new Date(f.at).toLocaleString(lang==='ru'?'ru-RU':'en-GB')}</small></div>`).join(''):`<p class="muted-text">${t('noFeedback')}</p>`}${feedback.length?button(t('clearFeedback'),'clear-feedback','ghost small'):''}</div></section></div>`;}
+
+function modal(title,body,footer=''){const last=document.activeElement;$('#modal-root').innerHTML=`<dialog class="modal"><div class="modal-header"><h2>${title}</h2><button class="icon-button dialog-close" data-action="close" aria-label="${t('close')}">${icon('x')}</button></div><div class="modal-body">${body}</div>${footer?`<div class="modal-footer">${footer}</div>`:''}</dialog>`;const d=$('dialog');d.showModal();d.addEventListener('close',()=>{if($('#modal-root').contains(d)){$('#modal-root').innerHTML='';last?.focus?.()}});d.addEventListener('click',e=>{if(e.target===d)d.close()});setTimeout(()=>d.querySelector('input, select, button')?.focus(),10);}
+const close=()=>$('dialog')?.close();
+function confirmDialog(text,callback){modal(t('review'),`<p>${text}</p>`,button(t('cancel'),'close','secondary')+`<button class="btn primary" id="confirm-button">${t('done')}</button>`);$('#confirm-button').onclick=()=>{close();callback()};}
+const dayOptions=(selected=0)=>days().map((d,i)=>`<option value="${i}" ${i===selected?'selected':''}>${d} · ${dateFor(i)}</option>`).join('');
+function field(label,name,type,value='',extra=''){return `<div class="field"><label for="${name}">${label}</label><input id="${name}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></div>`}
+function formError(form,msg){form.querySelector('.form-error').textContent=msg;}
+function taskForm(id){const task=state.tasks.find(x=>x.id===id);modal(task?t('edit'):t('addTask'),`<form id="task-form" class="form-grid">${field(t('taskTitle'),'title','text',task?.title||'','required maxlength="80"')}${field(t('course')+' ('+t('optional')+')','course','text',task?.course||'','maxlength="45"')}${field(t('duration')+' · '+t('minutes'),'duration','number',task?.duration||60,'required min="30" max="10080" step="30"')}<div class="field"><label for="deadline-day">${t('deadline')}</label><select id="deadline-day" name="day">${dayOptions(task?Math.floor(task.deadline/1440):4)}</select></div>${field(t('time'),'deadline-time','time',task?time(task.deadline):'18:00','required')}<div class="field"><label for="priority">${t('priority')}</label><select id="priority" name="priority">${['high','medium','low'].map(p=>`<option value="${p}" ${(task?.priority||'medium')===p?'selected':''}>${t(p)}</option>`).join('')}</select></div><p class="form-error" role="alert"></p><div class="form-actions">${task?button(t('delete'),'delete-task','danger',`type="button" data-id="${esc(task.id)}"`):''}${button(t('cancel'),'close','secondary','type="button"')}<button class="btn primary" type="submit">${t('save')}</button></div></form>`);
+aiAttachEstimator($('#task-form'),task);
+$('#task-form').onsubmit=e=>{e.preventDefault();const f=e.currentTarget,data=new FormData(f),[h,m]=String(data.get('deadline-time')).split(':').map(Number);const nt={id:task?.id||uid(),title:String(data.get('title')).trim(),course:String(data.get('course')).trim(),duration:Number(data.get('duration')),deadline:Number(data.get('day'))*1440+h*60+m,priority:String(data.get('priority')),aiFeatures:aiReadFeatures(f,'task-ai')};if(!nt.title||nt.deadline<=state.now)return formError(f,t('invalid'));const completed=state.sessions.filter(s=>s.taskId===nt.id&&s.status==='completed').reduce((a,s)=>a+s.end-s.start,0);if(nt.duration<completed)return formError(f,t('completedEstimate'));const next={...state,tasks:[...state.tasks.filter(x=>x.id!==nt.id),nt],sessions:state.sessions.filter(s=>s.taskId!==nt.id||s.status!=='planned')};const v=validateState(next);if(!v.valid)return formError(f,t('invalid')+' '+(v.errors?.[0]||''));const commit=()=>{state=next;review=[];state.rejectedProposals=[];save();render();toast(t('savedPlan'))};const removes=state.sessions.some(s=>s.taskId===nt.id&&s.status==='planned');close();if(removes)confirmDialog(t('confirmEdit'),commit);else commit();};}
+function blockForm(day=0){modal(t('addBlock'),`<form id="block-form" class="form-grid"><div class="field"><label for="block-day">${t('day')}</label><select id="block-day" name="day">${dayOptions(Number(day))}</select></div>${field(t('start'),'start','time','16:00','required step="1800"')}${field(t('end'),'end','time','18:00','required step="1800"')}<p class="form-error" role="alert"></p><div class="form-actions">${button(t('cancel'),'close','secondary','type="button"')}<button class="btn primary" type="submit">${t('save')}</button></div></form>`);$('#block-form').onsubmit=e=>{e.preventDefault();const f=e.currentTarget,d=new FormData(f),a={id:uid(),day:Number(d.get('day')),start:String(d.get('start')),end:String(d.get('end'))},next={...state,availability:[...state.availability,a]};const valid=validateState(next);if(!valid.valid)return formError(f,t('invalid')+' '+(valid.errors?.[0]||''));state=next;review=[];state.rejectedProposals=[];close();save();render();};}
+function editProposal(id){const p=review.find(x=>x.id===id);if(!p)return;modal(t('edit'),`<form id="proposal-form" class="form-grid"><p>${esc(state.tasks.find(x=>x.id===p.taskId)?.title)} · ${fmt(p.end-p.start)}</p><div class="field"><label for="proposal-day">${t('day')}</label><select id="proposal-day" name="day">${dayOptions(Math.floor(p.start/1440))}</select></div>${field(t('start'),'proposal-time','time',time(p.start),'required step="1800"')}<p class="form-error" role="alert"></p><div class="form-actions">${button(t('cancel'),'close','secondary','type="button"')}<button class="btn primary" type="submit">${t('accept')}</button></div></form>`);$('#proposal-form').onsubmit=e=>{e.preventDefault();const d=new FormData(e.currentTarget),[h,m]=String(d.get('proposal-time')).split(':').map(Number);const result=applyProposal(state,p,'edit',Number(d.get('day'))*1440+h*60+m);if(!result.ok)return formError(e.currentTarget,t('conflict'));state=result.state;review=review.filter(x=>x.id!==id).filter(x=>applyProposal(state,x,'accept').ok);close();save();render();toast(t('accepted'));};}
+function download(name,data,type='application/json'){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([typeof data==='string'?data:JSON.stringify(data,null,2)],{type}));a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action,id=el.dataset.id;if(a==='submit-feedback')return;
+if(aiHandleAction(a))return;
+if(a.startsWith('lang-')){lang=a.slice(5);if(!['en','ru','kk'].includes(lang))lang='en';try{localStorage.setItem(LANGUAGE_KEY,lang)}catch{storageOK=false}if(state)save();render();return;}
+if(a.startsWith('view-')){view=a.slice(5);render();window.scrollTo(0,0);return;}
+if(a==='close'){close();return;}
+if(a==='menu'){modal(t('actions'),`<div class="section-stack">${button(t('loadDemo'),'demo','secondary')}${button(t('reset'),'empty','secondary')}${button(t('about'),'about','ghost')}</div>`);return;}
+if(a==='about'){modal(t('about'),`<p>${t('aboutText')}</p><p>${at('scope')}</p><p>${at('seed')}</p>`);return;}
+if(a==='demo'||a==='empty'){const commit=()=>{state=a==='demo'?demo():base('personal');review=[];view='plan';save();render()};if(state)confirmDialog(t(a==='demo'?'confirmDemo':'confirmReset'),commit);else commit();return;}
+if(a==='add-task'||a==='edit-task'){taskForm(id);return;}
+if(a==='add-block'){blockForm(el.dataset.day||0);return;}
+if(a==='delete-task'){const tid=id;close();confirmDialog(t('confirmDelete'),()=>{state.tasks=state.tasks.filter(x=>x.id!==tid);state.sessions=state.sessions.filter(x=>x.taskId!==tid);review=[];save();render()});return;}
+if(a==='delete-block'){confirmDialog(t('confirmEdit'),()=>{state.availability=state.availability.filter(x=>x.id!==id);state.sessions=state.sessions.filter(x=>x.status!=='planned');review=[];state.rejectedProposals=[];save();render()});return;}
+if(a==='build'){if(!state.tasks.length||!state.availability.length){toast(t('needsSetup'));return;}const doBuild=()=>{const result=buildPlan({...state,sessions:state.sessions.filter(x=>x.status!=='planned')},{preserveApproved:false});if(result.errors?.length){toast(t('invalid'));return;}state.sessions=result.sessions;state.rejectedProposals=[];review=[];save();render();toast(t('savedPlan'))};if(state.sessions.some(s=>s.status==='planned'))confirmDialog(t('confirmRebuild'),doBuild);else doBuild();return;}
+if(a==='done-session'||a==='miss-session'){const session=state.sessions.find(x=>x.id===id),first=state.sessions.filter(x=>x.status==='planned').sort((a,b)=>a.start-b.start)[0];if(!session||first?.id!==id){toast(t('earliestOnly'));return;}session.status=a==='done-session'?'completed':'missed';state.now=Math.max(state.now,session.end);state.rejectedProposals=[];review=[];save();render();if(a==='miss-session')toast(t('noticeCompletion'));return;}
+if(a==='recover'){if(!state.tasks.length){toast(t('noPlans'));return;}state.rejectedProposals=[];const result=proposeChanges(state);if(result.errors?.length){toast(t('invalid'));return;}review=result.proposals;view='review';save();render();return;}
+if(a==='accept-change'||a==='reject-change'){const p=review.find(x=>x.id===id);if(!p)return;const r=applyProposal(state,p,a==='accept-change'?'accept':'reject');if(!r.ok){toast(t('conflict'));return;}state=r.state;review=review.filter(x=>x.id!==id).filter(x=>applyProposal(state,x,'accept').ok);save();render();toast(t(a==='accept-change'?'accepted':'declined'));return;}
+if(a==='edit-change'){editProposal(id);return;}
+if(a==='export-feedback'){download('study-planner-feedback.json',{prototype:'AI Study Planner MVP',exportedAt:new Date().toISOString(),records:feedback});return;}
+if(a==='export-plan'){exportPlanJpg({state:JSON.parse(JSON.stringify(state)),t,days:days(),dateFor,fmt,weekLabel:weekLabel()}).then(()=>toast(t('downloadReady'))).catch(()=>toast(t('exportError')));return;}
+if(a==='clear-feedback'){confirmDialog(t('confirmClearFeedback'),()=>{feedback=[];try{localStorage.setItem(FK,'[]')}catch{storageOK=false;toast(t('storage'))}render()});}
+});
+document.addEventListener('submit',e=>{if(e.target.id!=='feedback-form')return;e.preventDefault();const f=e.target,d=new FormData(f),rating=Number(d.get('rating')),comment=String(d.get('comment')).trim();if(!rating||!comment)return;feedback.unshift({id:uid(),participant:String(d.get('participant')).trim(),rating,comment,at:new Date().toISOString(),mode:state.mode,week:state.week});try{localStorage.setItem(FK,JSON.stringify(feedback))}catch{storageOK=false;}render();toast(storageOK?t('feedbackSaved'):t('storage'));});
+// Small local models. Seed examples are illustrative, not collected student data.
+const taskTypes=['reading','exercises','coding','writing','revision','project','general'];
+const normalize=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[ё]/g,'е');
+const tokens=s=>normalize(s).match(/[\p{L}\p{N}]+/gu)||[];
+const examples={
+ reading:['read chapter textbook pages article reading notes','read academic paper literature review','прочитать главу учебник страницы чтение статьи','читать книгу конспект литературы','тарауды оқу кітап мәтін бет мақала','оқулықтан оқу әдебиет шолу'],
+ exercises:['solve math problems exercises questions problem set mathematics algebra','practice sql queries database exercises','решить задачи математика упражнения вопросы примеры','решать задания по алгебре sql базы данных','математика есептерін шығару сұрақ тапсырма жаттығу','алгебра есеп шешу деректер қоры sql'],
+ coding:['python programming lab coding debug implement javascript code','build program computer science software project code','написать код программирование лабораторная python исправить ошибки','сделать программу javascript лабораторную работу','python код жазу бағдарламалау зертханалық жұмыс','бағдарлама жасау қателерді түзету кодтау'],
+ writing:['write essay report summary research paper paragraphs','draft introduction conclusion written assignment','написать эссе отчет доклад введение заключение','подготовить письменную работу текст реферат','эссе жазу есеп баяндама мәтін кіріспе қорытынды','жазбаша жұмыс реферат дайындау'],
+ revision:['revise study for exam review flashcards memorize quiz preparation','prepare for test revision vocabulary learn','повторить материал подготовиться к экзамену тесту зачету','выучить термины повторение карточки подготовка','емтиханға дайындалу қайталау тест термин жаттау','сабақты пысықтау бақылауға дайындық'],
+ project:['prepare presentation slides pitch team project design prototype','make slides for entrepreneurship project meeting','подготовить презентацию слайды проект прототип дизайн','сделать проект командная работа презентация','презентация слайд жоба прототип дайындау','топтық жоба таныстырылым жасау'],
+ general:['complete task finish assignment work activity','study session general coursework','выполнить дело закончить работу учебное задание','обычная задача заняться делами','тапсырманы орындау істі аяқтау жұмыс','жалпы оқу тапсырмасы істер']
+};
+const intents={create:['add task schedule study work finish assignment due deadline read write solve prepare','need python lab by friday two hours','добавить задание запланировать учеба срок дедлайн прочитать написать решить','нужно сделать работу к пятнице','тапсырма қосу оқу жоспарлау мерзім оқу жазу шешу дайындау','жұмысты жұмаға дейін орындау керек'],recover:['missed session recover unfinished work suggest new times reschedule my plan','i fell behind help me catch up','пропустил занятие восстановить план перенести незавершенную работу','отстал от плана найди новое время','сабақты өткізіп алдым жоспарды қалпына келтіру аяқталмаған жұмыс','үлгермедім жаңа уақыт ұсын қайта жоспарла']};
+function trainClassifier(groups){const vocabulary=new Set(),labels={};for(const [label,docs] of Object.entries(groups)){const counts={},uniqueDocs=docs.map(tokens);let total=0;for(const words of uniqueDocs)for(const w of words){vocabulary.add(w);counts[w]=(counts[w]||0)+1;total++;}labels[label]={counts,total,prior:docs.length};}return{labels,vocabulary};}
+const typeModel=trainClassifier(examples),intentModel=trainClassifier(intents);
+function classify(model,text){const words=tokens(text).filter(w=>model.vocabulary.has(w));const ranked=Object.entries(model.labels).map(([label,d])=>({label,score:words.reduce((s,w)=>s+Math.log(((d.counts[w]||0)+1)/(d.total+model.vocabulary.size)),Math.log(d.prior))})).sort((a,b)=>b.score-a.score);const e=ranked.map(x=>Math.exp(x.score-ranked[0].score)),sum=e.reduce((a,b)=>a+b,0);return{label:ranked[0].label,known:words.length,score:e[0]/sum,margin:ranked[0].score-ranked[1].score};}
+function classifyTask(text){const r=classify(typeModel,text);return r.known?r:{...r,label:'general'};}
+function classifyIntent(text){return classify(intentModel,text).label;}
+function features(x){const type=taskTypes.indexOf(x.type),u=Math.log1p(Number(x.units)),d=Number(x.difficulty)-1;return[1,...taskTypes.map((_,i)=>+(i===type)),d,u,...taskTypes.map((_,i)=>i===type?u:0)];}
+function validExample(x){return x&&taskTypes.includes(x.type)&&[0,1,2].includes(Number(x.difficulty))&&Number.isFinite(Number(x.units))&&Number(x.units)>=1&&Number(x.units)<=100&&Number.isFinite(Number(x.minutes))&&Number(x.minutes)>=5&&Number(x.minutes)<=1440;}
+const bases={reading:12,exercises:18,coding:42,writing:24,revision:20,project:30,general:25};
+const demoTraining=taskTypes.flatMap(type=>[0,1,2].flatMap(difficulty=>[1,3,6,10].map(units=>({type,difficulty,units,minutes:Math.min(600,Math.round(bases[type]*(1+.45*difficulty)*(1+.48*Math.log2(units)))),source:'illustrative'}))));
+function trainDuration(userExamples=[]){
+ const rows=[...demoTraining.map(x=>({...x,weight:1})),...userExamples.filter(validExample).map(x=>({...x,weight:8}))];
+ const n=features(rows[0]).length,A=Array.from({length:n},()=>Array(n+1).fill(0));
+ for(const row of rows){const v=features(row),y=Math.log(row.minutes),w=row.weight;for(let i=0;i<n;i++){for(let j=0;j<n;j++)A[i][j]+=w*v[i]*v[j];A[i][n]+=w*v[i]*y;}}
+ for(let i=0;i<n;i++)A[i][i]+=.12;
+ for(let i=0;i<n;i++){let pivot=i;for(let k=i+1;k<n;k++)if(Math.abs(A[k][i])>Math.abs(A[pivot][i]))pivot=k;[A[i],A[pivot]]=[A[pivot],A[i]];const div=A[i][i];if(Math.abs(div)<1e-10)throw Error('Model training failed');for(let j=i;j<=n;j++)A[i][j]/=div;for(let k=0;k<n;k++){if(k===i)continue;const f=A[k][i];for(let j=i;j<=n;j++)A[k][j]-=f*A[i][j];}}
+ return {weights:A.map(r=>r[n]),userCount:userExamples.filter(validExample).length,seedCount:demoTraining.length};
+}
+function predictDuration(model,x){if(!validExample({...x,minutes:30}))throw Error('Invalid workload');const raw=Math.exp(features(x).reduce((s,v,i)=>s+v*model.weights[i],0));return{raw:Math.max(5,Math.min(1440,Math.round(raw))),minutes:Math.max(30,Math.min(1440,Math.ceil(raw/30)*30))};}
+const numbers={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,один:1,одна:1,одно:1,два:2,две:2,три:3,четыре:4,пять:5,шесть:6,семь:7,восемь:8,девять:9,десять:10,бір:1,екі:2,үш:3,төрт:4,бес:5,алты:6,жеті:7,сегіз:8,тоғыз:9,он:10};
+function numeric(text){return normalize(text).replace(/[\p{L}]+/gu,w=>numbers[w]??w);}
+const dayWords=[['monday','mon','понедельник','понедельника','понедельнику','дүйсенбі','дүйсенбіге'],['tuesday','tue','вторник','вторника','вторнику','сейсенбі','сейсенбіге'],['wednesday','wed','среда','среду','среды','среде','сәрсенбі','сәрсенбіге'],['thursday','thu','четверг','четверга','четвергу','бейсенбі','бейсенбіге'],['friday','fri','пятница','пятницу','пятнице','пятницы','жұма','жұмаға'],['saturday','sat','суббота','субботу','субботы','субботе','сенбі','сенбіге'],['sunday','sun','воскресенье','воскресенья','воскресенью','жексенбі','жексенбіге']];
+function parseRequest(text,{week,now=0}={}){
+ const lines=String(text).split(/[\n;]+/).map(x=>x.trim()).filter(Boolean);if(!lines.length||lines.length>5||text.length>1500)return{error:'size',drafts:[]};
+ const drafts=lines.map(line=>{
+  const norm=normalize(line),num=numeric(line),words=tokens(line),kind=classifyTask(line);
+  const intent=classifyIntent(line);if(intent==='recover')return{intent:'recover',text:line};
+  let day=null,unsupported=false;const iso=norm.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+  if(iso){const anchor=Date.parse(week+'T12:00:00Z'),date=Date.parse(iso[1]+'T12:00:00Z'),offset=(date-anchor)/86400000;if(Number.isInteger(offset)&&offset>=0&&offset<=6)day=offset;else unsupported=true;}
+  if(!iso){for(let i=0;i<7;i++)if(dayWords[i].some(w=>words.includes(w)))day=i;
+   if(/\b(?:today|сегодня)\b/u.test(norm)||words.includes('бүгін'))day=Math.floor(now/1440);
+   if(/\b(?:tomorrow|завтра)\b/u.test(norm)||words.includes('ертең'))day=Math.floor(now/1440)+1;
+  }
+  if(day>6||/(next week|следующ[^ ]* недел|келесі апта)/u.test(norm))unsupported=true;
+  const clock=norm.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);const deadlineTime=clock?`${clock[1].padStart(2,'0')}:${clock[2]}`:'18:00';
+  const duration=num.match(/(\d+(?:[.,]\d+)?)\s*(hours?|hrs?|h\b|час[а-я]*|сағат)/u),mins=num.match(/(\d+)\s*(minutes?|mins?|минут[а-я]*|мин\b)/u);
+  let explicitMinutes=duration?Math.round(Number(duration[1].replace(',','.'))*60):0;if(mins)explicitMinutes+=Number(mins[1]);
+  const unitsMatch=num.match(/(\d+)\s*(pages?|questions?|exercises?|problems?|страниц[а-я]*|вопрос[а-я]*|задач[а-я]*|упражнен[а-я]*|бет|есеп|сұрақ|тапсырма)/u);
+  const difficulty=/(medium|moderate|средн|орташа)/u.test(norm)?1:/(easy|simple|легк|прост|оңай|жеңіл)/u.test(norm)?0:/(hard|difficult\b|сложн|трудн|қиын|күрделі)/u.test(norm)?2:1;
+  let title=line.split(',').filter((part,i)=>i===0||!/(\d+\s*(hour|minute|час|минут|сағат)|due\b|deadline|дедлайн|мерзім|\d{1,2}:\d{2}|difficulty|сложност|қиындық)/iu.test(numeric(part))).join(', ').trim();if(!title)title=line;
+  title=title.replace(/^(please\s+)?(add\s+(a\s+)?task[:\s]*|schedule\s+|добавь\s+(задание[:\s]*)?)/iu,'').trim().slice(0,80);
+  let course=/python/iu.test(line)?'Python':/sql|database|баз[а-я]* данных|деректер қоры/iu.test(line)?'Databases':/math|математ|алгебр/iu.test(line)?'Mathematics':'';
+  return{intent:'create',title,course,type:kind.label,recognized:kind.known>0,day:unsupported?null:day,deadlineTime,defaultTime:!clock,explicitMinutes:explicitMinutes||null,difficulty,units:unitsMatch?Number(unitsMatch[1]):1,priority:/(urgent|high priority|срочно|срочн|шұғыл)/u.test(norm)?'high':'medium',unsupported};
+ });
+ return{drafts};
+}
+
+const AI_LEARNING_KEY='study-planner-local-ai-learning-v1';
+const aiWords={
+ en:{assistant:'AI assistant',estimate:'Estimate study time',request:'Describe your tasks',hint:'One task per line, up to 5. Example: Python lab, two hours, due Friday at 18:00. Or: I missed a session; help me catch up. Dates refer to the selected week and prototype time.',scope:'Works on this device. Supports short task and recovery requests. Check every field before applying changes.',read:'Read request',draft:'Review task drafts',type:'Task type',difficulty:'Difficulty',units:'Workload',unitsHint:'Pages, questions or work steps (1–100). Keep the same unit when recording actual times.',easy:'Easy',normal:'Medium',hard:'Hard',reading:'Reading',exercises:'Exercises',coding:'Coding',writing:'Writing',revision:'Revision',project:'Project / slides',general:'Other task',predict:'Estimate',result:'Suggested duration',approx:'Approximate; rounded up to 30-minute planning blocks.',seed:'Starts from illustrative training examples, not measured student results.',learned:'Your recorded examples',learn:'Improve estimates',actual:'Actual minutes spent',record:'Save actual time & learn',recorded:'Actual time recorded. Future estimates updated.',preview:'Preview plan',apply:'Save tasks & plan',planPreview:'Review proposed plan',previewHint:'Existing approved sessions stay in place. Changes apply only when you confirm.',newTasks:'New tasks',newSessions:'New sessions',unallocated:'Work still without time',dateMissing:'Choose a deadline day for every task.',defaultTime:'18:00 is suggested when no time was stated. Change it if needed.',unclear:'Some wording was not recognized. Check the task type and details.',outOfWeek:'The date is outside this planning week. Choose a day below.',inputError:'Enter 1–5 short task lines, at most 1500 characters.',badWork:'Check task type, workload and actual time.',storageError:'Could not save learning data. This estimate is still available.',recovery:'Review recovery options',recoveryHint:'This request was read as recovery of unfinished work. Suggestions use the planner’s scheduling rules; you accept, edit or decline each one.',emptyRecovery:'There is no unfinished work that can be placed. Check available hours and deadlines.',trainingHint:'Record real measured time for the workload above. Done/Missed does not record actual duration.',chooseDay:'Choose a day',invalid:'Check titles, positive 30-minute durations and deadlines after prototype time.',stale:'The plan changed. Please generate a new preview.',estimateTitle:'What are you working on?',use:'Use estimate in a new task',sample:'Load sample request',missingTime:'Add available hours to place this work. Tasks can be saved first.',saveHint:'Only examples you explicitly record are used for personalization.'},
+ ru:{assistant:'ИИ-помощник',estimate:'Оценить время на учёбу',request:'Опиши задания',hint:'Одно задание в строке, до 5. Например: Лабораторная Python, два часа, к пятнице в 18:00. Или: Пропустил занятие, помоги восстановить план. Даты относятся к выбранной неделе и времени прототипа.',scope:'Локальный классификатор текста и модель оценки времени. Понимает короткие запросы о заданиях и восстановлении плана. Проверь каждое поле: возможности помощника ограничены.',read:'Разобрать запрос',draft:'Проверь задания',type:'Тип задания',difficulty:'Сложность',units:'Объём работы',unitsHint:'Страницы, вопросы или шаги работы (1–100). При записи фактического времени используй ту же единицу.',easy:'Легко',normal:'Средне',hard:'Сложно',reading:'Чтение',exercises:'Задачи',coding:'Программирование',writing:'Письменная работа',revision:'Повторение',project:'Проект / слайды',general:'Другое задание',predict:'Оценить',result:'Предлагаемая длительность',approx:'Примерная оценка; округлена вверх до 30-минутных блоков.',seed:'Начальная модель обучена на иллюстративных примерах, а не на измеренных результатах студентов.',learned:'Твои записанные примеры',learn:'Улучшить оценки',actual:'Фактически потрачено минут',record:'Записать время и обучить',recorded:'Фактическое время записано. Будущие оценки обновлены.',preview:'Посмотреть план',apply:'Сохранить задания и план',planPreview:'Проверь предлагаемый план',previewHint:'Уже согласованные занятия остаются на месте. Изменения применятся только после подтверждения.',newTasks:'Новые задания',newSessions:'Новые занятия',unallocated:'Работа без времени',dateMissing:'Выбери день дедлайна для каждого задания.',defaultTime:'Если время не указано, предложено 18:00. При необходимости измени его.',unclear:'Часть текста не распознана. Проверь тип задания и остальные данные.',outOfWeek:'Дата вне выбранной недели. Выбери день ниже.',inputError:'Введи 1–5 коротких заданий, не более 1500 символов.',badWork:'Проверь тип задания, объём и фактическое время.',storageError:'Не удалось сохранить данные обучения. Оценка доступна в этой вкладке.',recovery:'Проверить варианты восстановления',recoveryHint:'Запрос распознан как восстановление незавершённой работы. Варианты рассчитывает планировщик; каждый можно принять, изменить или отклонить.',emptyRecovery:'Нет незавершённой работы, которую можно разместить. Проверь свободные часы и сроки.',trainingHint:'Укажи реально измеренное время для выбранного объёма. «Готово» и «Пропуск» не записывают фактическую длительность.',chooseDay:'Выбери день',invalid:'Проверь названия, длительность с шагом 30 минут и дедлайны после времени прототипа.',stale:'План изменился. Создай новый предварительный план.',estimateTitle:'Над чем работаешь?',use:'Использовать оценку в новом задании',sample:'Вставить пример запроса',missingTime:'Добавь свободные часы, чтобы разместить работу. Сначала можно сохранить задания.',saveHint:'Для персонализации используются только примеры, которые ты явно записал.'},
+ kk:{assistant:'ЖИ көмекшісі',estimate:'Оқу уақытын бағалау',request:'Тапсырмаларды сипатта',hint:'Әр жолға бір тапсырма, ең көбі 5. Мысалы: Python зертханалық жұмыс, екі сағат, жұмаға дейін 18:00. Немесе: Сабақты өткізіп алдым, жоспарды қалпына келтір. Күндер таңдалған апта мен прототип уақытына қатысты.',scope:'Жергілікті мәтін жіктеуіші және уақытты бағалау моделі. Қысқа тапсырма және жоспарды қалпына келтіру сұрауларын түсінеді. Барлық өрістерді тексер: көмекшінің мүмкіндіктері шектеулі.',read:'Сұрауды талдау',draft:'Тапсырмаларды тексер',type:'Тапсырма түрі',difficulty:'Қиындық',units:'Жұмыс көлемі',unitsHint:'Беттер, сұрақтар немесе жұмыс қадамдары (1–100). Нақты уақытты жазғанда сол өлшемді қолдан.',easy:'Оңай',normal:'Орташа',hard:'Қиын',reading:'Оқу',exercises:'Есептер',coding:'Бағдарламалау',writing:'Жазбаша жұмыс',revision:'Қайталау',project:'Жоба / слайдтар',general:'Басқа тапсырма',predict:'Бағалау',result:'Ұсынылған ұзақтық',approx:'Шамамен бағалау; 30 минуттық жоспарлау блоктарына жоғары дөңгелектелген.',seed:'Бастапқы модель студенттердің өлшенген нәтижелерімен емес, иллюстративті мысалдармен оқытылған.',learned:'Өзің жазған мысалдар',learn:'Бағалауды жақсарту',actual:'Нақты жұмсалған минут',record:'Уақытты жазып, модельді оқыту',recorded:'Нақты уақыт жазылды. Келесі бағалаулар жаңартылды.',preview:'Жоспарды алдын ала көру',apply:'Тапсырмалар мен жоспарды сақтау',planPreview:'Ұсынылған жоспарды тексер',previewHint:'Келісілген сабақтар орнында қалады. Өзгерістер тек растағаннан кейін қолданылады.',newTasks:'Жаңа тапсырмалар',newSessions:'Жаңа сабақтар',unallocated:'Уақыты белгіленбеген жұмыс',dateMissing:'Әр тапсырманың мерзімі үшін күнді таңда.',defaultTime:'Уақыт көрсетілмесе, 18:00 ұсынылады. Қажет болса өзгерт.',unclear:'Мәтіннің бір бөлігі танылмады. Тапсырма түрі мен деректерін тексер.',outOfWeek:'Күн таңдалған аптадан тыс. Төменнен күн таңда.',inputError:'1–5 қысқа тапсырма енгіз, ең көбі 1500 таңба.',badWork:'Тапсырма түрін, көлемін және нақты уақытты тексер.',storageError:'Оқыту деректерін сақтау мүмкін болмады. Бағалау осы бетте қолжетімді.',recovery:'Қалпына келтіру нұсқаларын тексеру',recoveryHint:'Сұрау аяқталмаған жұмысты қайта жоспарлау ретінде танылды. Нұсқаларды жоспарлаушы есептейді; әрқайсысын қабылдауға, өзгертуге немесе қабылдамауға болады.',emptyRecovery:'Орналастыруға болатын аяқталмаған жұмыс жоқ. Бос уақыт пен мерзімдерді тексер.',trainingHint:'Таңдалған көлемге нақты өлшенген уақытты енгіз. «Дайын» және «Өткізіп алдым» нақты ұзақтықты жазбайды.',chooseDay:'Күнді таңда',invalid:'Атауларды, 30 минут қадамды ұзақтықты және прототип уақытынан кейінгі мерзімдерді тексер.',stale:'Жоспар өзгерді. Жаңа алдын ала жоспар жаса.',estimateTitle:'Қандай жұмыс орындайсың?',use:'Бағалауды жаңа тапсырмада қолдану',sample:'Сұрау мысалын енгізу',missingTime:'Жұмысты орналастыру үшін бос уақыт қос. Алдымен тапсырмаларды сақтауға болады.',saveHint:'Жекелендіру үшін тек өзің жазған мысалдар қолданылады.'}
+};
+const at=k=>aiWords[lang][k]||aiWords.en[k]||k;
+let aiLearning=[];
+try{const stored=JSON.parse(localStorage.getItem(AI_LEARNING_KEY)||'[]');if(Array.isArray(stored))aiLearning=stored.filter(validExample).slice(-200);}catch{}
+let aiDurationModel=trainDuration(aiLearning),aiPending=null;
+function aiFeatureFields(prefix,value={}){return `<div class="field"><label for="${prefix}-type">${at('type')}</label><select id="${prefix}-type">${taskTypes.map(type=>`<option value="${type}" ${value.type===type?'selected':''}>${at(type)}</option>`).join('')}</select></div><div class="field"><label for="${prefix}-difficulty">${at('difficulty')}</label><select id="${prefix}-difficulty">${['easy','normal','hard'].map((key,i)=>`<option value="${i}" ${Number(value.difficulty??1)===i?'selected':''}>${at(key)}</option>`).join('')}</select></div>${field(at('units'),prefix+'-units','number',value.units||1,'min="1" max="100" step="1" required')}<small class="ai-wide">${at('unitsHint')}</small>`;}
+function aiReadFeatures(form,prefix){return{type:form.querySelector('#'+prefix+'-type').value,difficulty:Number(form.querySelector('#'+prefix+'-difficulty').value),units:Number(form.querySelector('#'+prefix+'-units').value)};}
+function aiRecord(form,prefix,result){const x={...aiReadFeatures(form,prefix),minutes:Number(form.querySelector('#'+prefix+'-actual').value),source:'user',recordedAt:new Date().toISOString()};if(!validExample(x)){result.textContent=at('badWork');return;}const next=[...aiLearning,x].slice(-200);try{localStorage.setItem(AI_LEARNING_KEY,JSON.stringify(next));aiLearning=next;aiDurationModel=trainDuration(next);result.textContent=at('recorded')+' '+at('learned')+': '+next.length;}catch{result.textContent=at('storageError');}}
+function aiAttachEstimator(form,task){const features=task?.aiFeatures||{type:classifyTask(task?.title||'').label,difficulty:1,units:1};form.querySelector('.form-error').insertAdjacentHTML('beforebegin',`<details class="ai-wide ai-estimator"><summary>${at('estimate')}</summary><div class="ai-fields">${aiFeatureFields('task-ai',features)}<button class="btn secondary ai-wide" type="button" id="task-ai-estimate">${at('predict')}</button><p class="ai-wide ai-small" id="task-ai-result"></p><p class="ai-wide ai-small">${at('seed')} ${at('learned')}: ${aiLearning.length}</p></div></details>`);form.querySelector('#task-ai-estimate').onclick=()=>{const output=form.querySelector('#task-ai-result');try{const x=aiReadFeatures(form,'task-ai'),p=predictDuration(aiDurationModel,x);form.querySelector('#duration').value=p.minutes;output.textContent=at('result')+': '+fmt(p.minutes)+'. '+at('approx');}catch{output.textContent=at('badWork');}};}
+function aiHome(tab='request'){
+ modal(at('assistant'),`<div class="ai-tabs">${button(at('request'),'ai-request',tab==='request'?'primary':'secondary')}${button(at('estimate'),'ai-estimator',tab==='estimate'?'primary':'secondary')}</div><p class="ai-small">${at('scope')}</p>${tab==='request'?`<form id="ai-request-form" class="form-grid"><div class="field"><label for="ai-request">${at('request')}</label><textarea id="ai-request" rows="4" maxlength="1500" required></textarea><small>${at('hint')}</small></div><div class="form-actions"><button type="button" class="btn ghost" id="ai-sample">${at('sample')}</button><button class="btn primary" type="submit">${at('read')}</button></div><p class="form-error" role="alert"></p></form>`:`<form id="ai-estimator-form" class="form-grid">${field(at('estimateTitle'),'estimate-title','text','','maxlength="80"')}<div class="ai-fields ai-wide">${aiFeatureFields('estimate',{type:'coding'})}</div><button type="button" class="btn primary ai-wide" id="ai-predict">${at('predict')}</button><p class="ai-wide" id="ai-estimate-result" aria-live="polite"></p><button type="button" class="btn secondary ai-wide" id="ai-use-estimate" hidden>${at('use')}</button><p class="ai-small ai-wide">${at('seed')} ${at('learned')}: ${aiLearning.length}</p><details class="ai-wide ai-estimator"><summary>${at('learn')}</summary><p class="ai-small">${at('trainingHint')}</p>${field(at('actual'),'estimate-actual','number','','min="5" max="1440" step="1"')}<button type="button" class="btn secondary" id="ai-record">${at('record')}</button><p class="ai-small" id="ai-learning-result" aria-live="polite"></p></details></form>`}<p class="ai-small">${at('saveHint')}</p>`);
+ if(tab==='request'){$('#ai-sample').onclick=()=>{$('#ai-request').value={en:'Python lab, two hours, due Friday at 18:00\nRead 5 pages, medium difficulty, due Wednesday at 17:00',ru:'Лабораторная Python, два часа, к пятнице в 18:00\nПрочитать 5 страниц, средняя сложность, к среде в 17:00',kk:'Python зертханалық жұмыс, екі сағат, жұмаға дейін 18:00\n5 бет оқу, орташа қиындық, сәрсенбіге дейін 17:00'}[lang];};$('#ai-request-form').onsubmit=e=>{e.preventDefault();const parsed=parseRequest($('#ai-request').value,{week:state.week,now:state.now});if(parsed.error)return formError(e.currentTarget,at('inputError'));if(parsed.drafts.some(d=>d.intent==='create'&&!validExample({...d,minutes:30})))return formError(e.currentTarget,at('badWork'));aiShowDrafts(parsed.drafts);};}
+ else{let estimate=null;$('#ai-predict').onclick=()=>{try{estimate=predictDuration(aiDurationModel,aiReadFeatures($('#ai-estimator-form'),'estimate'));$('#ai-estimate-result').textContent=at('result')+': '+fmt(estimate.minutes)+'. '+at('approx');$('#ai-use-estimate').hidden=false;}catch{$('#ai-estimate-result').textContent=at('badWork');}};$('#ai-use-estimate').onclick=()=>{if(!estimate)return;const title=$('#estimate-title').value,x=aiReadFeatures($('#ai-estimator-form'),'estimate');const latest=predictDuration(aiDurationModel,x);close();taskForm();$('#title').value=title;$('#duration').value=latest.minutes;$('#task-ai-type').value=x.type;$('#task-ai-difficulty').value=x.difficulty;$('#task-ai-units').value=x.units;};$('#ai-record').onclick=()=>aiRecord($('#ai-estimator-form'),'estimate',$('#ai-learning-result'));}
+}
+function aiShowDrafts(drafts){
+ const recovery=drafts.some(x=>x.intent==='recover');if(recovery&&drafts.some(x=>x.intent!=='recover')){modal(at('assistant'),`<p>${({en:'Please submit recovery requests separately from new tasks. No changes have been made.',ru:'Отправь запрос на восстановление отдельно от новых заданий. Изменения не внесены.',kk:'Жоспарды қалпына келтіру сұрауын жаңа тапсырмалардан бөлек жібер. Өзгерістер енгізілген жоқ.'})[lang]}</p>${button(at('request'),'ai-request','secondary')}`);return;}if(recovery){modal(at('assistant'),`<p>${at('recoveryHint')}</p><div class="form-actions">${button(t('cancel'),'close','secondary')}${button(at('recovery'),'ai-recovery','primary')}</div>`);return;}
+ modal(at('draft'),`<form id="ai-drafts-form" class="form-grid">${drafts.map((d,i)=>{let duration=d.explicitMinutes?Math.ceil(d.explicitMinutes/30)*30:predictDuration(aiDurationModel,{type:d.type,difficulty:d.difficulty,units:Math.min(100,d.units)}).minutes;return `<fieldset class="ai-draft ai-wide" data-index="${i}"><legend>${i+1}</legend>${field(t('taskTitle'),'ai-title-'+i,'text',d.title,'required maxlength="80"')}${field(t('course'),'ai-course-'+i,'text',d.course,'maxlength="45"')}${field(t('duration')+' · '+t('minutes'),'ai-duration-'+i,'number',duration,'required min="30" max="10080" step="30"')}<div class="field"><label for="ai-day-${i}">${t('deadline')}</label><select id="ai-day-${i}" required><option value="">${at('chooseDay')}</option>${days().map((day,j)=>`<option value="${j}" ${d.day===j?'selected':''}>${day} · ${dateFor(j)}</option>`).join('')}</select></div>${field(t('time'),'ai-time-'+i,'time',d.deadlineTime,'required')}<p class="ai-small">${d.explicitMinutes?'':at('approx')+' '}${d.defaultTime?at('defaultTime'):''}${!d.recognized?' '+at('unclear'):''}${d.unsupported?' '+at('outOfWeek'):''}</p></fieldset>`;}).join('')}<p class="form-error" role="alert"></p><div class="form-actions">${button(t('cancel'),'close','secondary','type="button"')}<button class="btn primary" type="submit">${at('preview')}</button></div></form>`);
+ $('#ai-drafts-form').onsubmit=e=>{e.preventDefault();const f=e.currentTarget,newTasks=[];for(let i=0;i<drafts.length;i++){const d=drafts[i],day=f.querySelector('#ai-day-'+i).value;if(day==='')return formError(f,at('dateMissing'));const clock=f.querySelector('#ai-time-'+i).value.split(':').map(Number);newTasks.push({id:uid(),title:f.querySelector('#ai-title-'+i).value.trim(),course:f.querySelector('#ai-course-'+i).value.trim(),duration:Number(f.querySelector('#ai-duration-'+i).value),deadline:Number(day)*1440+clock[0]*60+clock[1],priority:d.priority,aiFeatures:{type:d.type,difficulty:d.difficulty,units:Math.min(100,d.units)}});}
+ const next={...state,tasks:[...state.tasks,...newTasks]},valid=validateState(next);if(!valid.valid||newTasks.some(x=>!x.title||x.deadline<=state.now))return formError(f,at('invalid'));
+ const result=buildPlan(next);if(result.errors.length)return formError(f,at('invalid'));aiPending={state:{...next,sessions:result.sessions,rejectedProposals:[]},snapshot:JSON.stringify(state)};
+ const originalIds=new Set(state.sessions.map(x=>x.id)),fresh=result.sessions.filter(x=>!originalIds.has(x.id));
+ modal(at('planPreview'),`<p>${at('previewHint')}</p><h3>${at('newTasks')}: ${newTasks.length}</h3>${newTasks.map(x=>`<p>${esc(x.title)} · ${fmt(x.duration)}</p>`).join('')}<h3>${at('newSessions')}: ${fresh.length}</h3>${fresh.map(x=>`<p>${esc(next.tasks.find(t=>t.id===x.taskId).title)} · ${slotLabel(x.start,x.end)}</p>`).join('')}<div class="notice ${result.summary.unscheduled?'warning':''}">${at('unallocated')}: ${fmt(result.summary.unscheduled)}${!state.availability.length?'<p>'+at('missingTime')+'</p>':''}</div><div class="form-actions">${button(t('cancel'),'close','secondary')}${button(at('apply'),'ai-apply','primary')}</div>`);
+ };
+}
+function aiHandleAction(action){if(action==='ai-open'||action==='ai-request'){aiHome();return true;}if(action==='ai-estimator'){aiHome('estimate');return true;}if(action==='ai-recovery'){const result=proposeChanges({...state,rejectedProposals:[]});close();if(result.errors.length||!result.proposals.length){toast(at('emptyRecovery'));return true;}state.rejectedProposals=[];review=result.proposals;view='review';save();render();return true;}if(action==='ai-apply'){if(!aiPending||aiPending.snapshot!==JSON.stringify(state)){toast(at('stale'));return true;}const validation=validatePlan(aiPending.state,aiPending.state.sessions);if(!validation.valid){toast(at('invalid'));return true;}state=aiPending.state;aiPending=null;review=[];view='plan';close();save();render();toast(t('savedPlan'));return true;}return false;}
+
+load();render();
+/** A self-contained, offline JPG export of the actual plan, including personal appointments. */
+async function exportPlanJpg({ state, t, days, dateFor, fmt, weekLabel }) {
+  if (!state) throw new Error('A plan is required.');
+  if (document.fonts?.ready) await document.fonts.ready;
+  const W = 1800, PAD = 76, INNER = W - 2 * PAD, DAY_LABEL = 230;
+  const MAX_HEIGHT = 12000, HEADER = 240, FOOTER = 94;
+  const C = { navy: '#17345e', text: '#1c2d45', muted: '#68788f', line: '#dce4ee', soft: '#f3f6fb', blue: '#eaf1fb', white: '#ffffff', personal: '#eef0fa', amber: '#fff5e3' };
+  const font = '"Segoe UI", Arial, sans-serif';
+  const probe = document.createElement('canvas'), m = probe.getContext('2d');
+  if (!m) throw new Error('Canvas is unavailable.');
+  const label = (key, fallback = key) => { const value = t(key); return value && value !== key ? value : fallback; };
+  const clock = value => `${String(Math.floor((value % 1440) / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
+  const endClock = value => value > 0 && value % 1440 === 0 ? '24:00' : clock(value);
+  const text = value => String(value ?? '').replace(/\r\n?/g, '\n');
+  const wrap = (value, maxWidth, size = 26, weight = 400) => {
+    m.font = `${weight} ${size}px ${font}`;
+    const lines = [];
+    for (const paragraph of text(value).split('\n')) {
+      const words = paragraph.split(/\s+/u).filter(Boolean);
+      if (!words.length) { lines.push(''); continue; }
+      let current = '';
+      for (const word of words) {
+        const trial = current ? `${current} ${word}` : word;
+        if (m.measureText(trial).width <= maxWidth) { current = trial; continue; }
+        if (current) { lines.push(current); current = ''; }
+        // Break an exceptionally long single word by Unicode code points, retaining every character.
+        for (const char of [...word]) {
+          if (current && m.measureText(current + char).width > maxWidth) { lines.push(current); current = ''; }
+          current += char;
+        }
+      }
+      if (current) lines.push(current);
+    }
+    return lines;
+  };
+  const tasks = Array.isArray(state.tasks) ? state.tasks : [];
+  const sessions = Array.isArray(state.sessions) ? state.sessions : [];
+  const events = Array.isArray(state.events) ? state.events : [];
+  const availability = Array.isArray(state.availability) ? state.availability : [];
+  const taskMap = new Map(tasks.map(task => [task.id, task]));
+  const contentWidth = INNER - DAY_LABEL - 48;
+  const blocks = [];
+  const cardBlock = (day, title, meta, notes = '', kind = 'study', status = '') => {
+    const titleLines = wrap(title, contentWidth, 27, 600);
+    const metaLines = wrap(meta, contentWidth, 22);
+    const noteLines = notes ? wrap(notes, contentWidth, 22) : [];
+    const lineItems = [
+      ...titleLines.map(value => ({ value, size: 27, weight: 600, color: C.text, advance: 35 })),
+      ...metaLines.map(value => ({ value, size: 22, weight: 400, color: C.muted, advance: 30 })),
+      ...noteLines.map(value => ({ value, size: 22, weight: 400, color: C.muted, advance: 30 })),
+    ];
+    // Splitting exceptionally long notes into separate cards keeps every page inside Canvas limits.
+    const limit = MAX_HEIGHT - HEADER - FOOTER - 150;
+    let chunk = [], height = 40;
+    for (const item of lineItems) {
+      if (height + item.advance > limit && chunk.length) {
+        blocks.push({ type: 'card', day, lines: chunk, height: height + 16, kind, status });
+        chunk = []; height = 40;
+      }
+      chunk.push(item); height += item.advance;
+    }
+    if (chunk.length) blocks.push({ type: 'card', day, lines: chunk, height: Math.max(114, height + 16), kind, status });
+  };
+  for (let day = 0; day < 7; day++) {
+    blocks.push({ type: 'day', day, height: 70 });
+    const items = [
+      ...sessions.filter(s => Math.floor(s.start / 1440) === day).map(s => ({ ...s, itemType: 'session' })),
+      ...events.filter(e => Math.floor(e.start / 1440) === day).map(e => ({ ...e, itemType: 'event' })),
+    ].sort((a, b) => a.start - b.start || a.end - b.end || String(a.id).localeCompare(String(b.id)));
+    if (!items.length) blocks.push({ type: 'empty', day, height: 62 });
+    for (const item of items) {
+      if (item.itemType === 'session') {
+        const task = taskMap.get(item.taskId);
+        if (!task) continue;
+        const status = item.status === 'completed' ? label('completed') : item.status === 'missed' ? label('missedSession') : label('planned');
+        const category = task.category === 'personal' ? label('personalTask', 'Personal task') : label('study', 'Study');
+        const meta = [`${clock(item.start)}–${endClock(item.end)}`, fmt(item.end - item.start), category, task.course, status].filter(Boolean).join('  ·  ');
+        cardBlock(day, task.title, meta, task.notes || '', task.category === 'personal' ? 'personal' : 'study', item.status);
+      } else {
+        const category = item.category === 'class' ? label('classEvent', 'Class') : item.category === 'break' ? label('breakEvent', 'Break') : label('personalEvent', 'Personal event');
+        cardBlock(day, item.title, `${clock(item.start)}–${endClock(item.end)}  ·  ${fmt(item.end - item.start)}  ·  ${category}`, item.notes || '', 'personal');
+      }
+    }
+    const hours = availability.filter(a => a.day === day).map(a => `${a.start}–${a.end}`).join('  ·  ');
+    const availableLines = wrap(`${label('availableHours', 'Available hours')}: ${hours || '—'}`, INNER - DAY_LABEL - 30, 20);
+    blocks.push({ type: 'available', day, lines: availableLines, height: availableLines.length * 28 + 28 });
+  }
+  const unallocated = tasks.map(task => {
+    const own = sessions.filter(s => s.taskId === task.id);
+    const completed = own.filter(s => s.status === 'completed').reduce((n, s) => n + s.end - s.start, 0);
+    const planned = own.filter(s => s.status === 'planned').reduce((n, s) => n + s.end - s.start, 0);
+    return { task, remaining: Math.max(0, task.duration - completed - planned) };
+  }).filter(x => x.remaining > 0);
+  if (unallocated.length) {
+    blocks.push({ type: 'heading', title: label('unscheduled'), height: 86 });
+    for (const { task, remaining } of unallocated) {
+      const day = Math.max(0, Math.min(6, Math.floor(task.deadline / 1440)));
+      const deadline = `${label('deadline')}: ${days[day]} ${dateFor(day)}, ${endClock(task.deadline)}`;
+      cardBlock(null, task.title, `${fmt(remaining)} ${label('remaining')}  ·  ${deadline}`, task.notes || '', task.category === 'personal' ? 'personal' : 'study', 'unscheduled');
+    }
+  }
+  // Paginate only when a dense plan exceeds a safe Canvas dimension.
+  const pages = [];
+  let page = [], used = HEADER;
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    const nextHeight = block.type === 'day' && blocks[i + 1] ? blocks[i + 1].height : 0;
+    if (used + block.height + nextHeight + FOOTER > MAX_HEIGHT && page.length) {
+      pages.push({ blocks: page, height: used + FOOTER });
+      page = []; used = HEADER;
+      if (block.type !== 'day' && block.day !== null && block.day !== undefined) {
+        page.push({ type: 'day', day: block.day, height: 70 }); used += 70;
+      }
+    }
+    page.push(block); used += block.height;
+  }
+  if (page.length) pages.push({ blocks: page, height: used + FOOTER });
+  const rounded = (ctx, x, y, width, height, radius = 12) => {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y); ctx.lineTo(x + width - radius, y); ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius); ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height); ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius); ctx.quadraticCurveTo(x, y, x + radius, y); ctx.closePath(); ctx.fill();
+  };
+  for (let index = 0; index < pages.length; index++) {
+    const data = pages[index], canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = Math.ceil(data.height);
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) throw new Error('Canvas is unavailable.');
+    ctx.fillStyle = C.white; ctx.fillRect(0, 0, W, canvas.height);
+    const line = (value, x, y, size = 24, weight = 400, color = C.text) => {
+      ctx.font = `${weight} ${size}px ${font}`; ctx.fillStyle = color; ctx.textBaseline = 'top'; ctx.fillText(value, x, y);
+    };
+    line('AI Study Planner', PAD, 58, 40, 700, C.navy);
+    line(weekLabel, PAD, 120, 32, 600, C.text);
+    const planned = sessions.filter(s => s.status === 'planned').reduce((n, s) => n + s.end - s.start, 0);
+    const complete = sessions.filter(s => s.status === 'completed').reduce((n, s) => n + s.end - s.start, 0);
+    line(`${label('planned')}: ${fmt(planned)}  ·  ${label('completed')}: ${fmt(complete)}`, PAD, 172, 22, 400, C.muted);
+    ctx.fillStyle = C.line; ctx.fillRect(PAD, 218, INNER, 2);
+    let y = HEADER;
+    for (const block of data.blocks) {
+      if (block.type === 'day') {
+        line(days[block.day], PAD, y + 16, 29, 700, C.navy);
+        line(dateFor(block.day), PAD + 98, y + 20, 23, 400, C.muted);
+      } else if (block.type === 'card') {
+        const x = PAD + DAY_LABEL;
+        ctx.fillStyle = block.status === 'missed' || block.status === 'unscheduled' ? C.amber : block.kind === 'personal' ? C.personal : C.blue;
+        rounded(ctx, x, y, INNER - DAY_LABEL, block.height - 12);
+        ctx.fillStyle = C.navy; rounded(ctx, x, y + 14, 5, block.height - 40, 2);
+        let ty = y + 20;
+        for (const item of block.lines) { line(item.value, x + 24, ty, item.size, item.weight, item.color); ty += item.advance; }
+      } else if (block.type === 'empty') {
+        line(label('noSessions'), PAD + DAY_LABEL + 24, y + 10, 23, 400, C.muted);
+      } else if (block.type === 'available') {
+        let ty = y + 4;
+        for (const value of block.lines) { line(value, PAD + DAY_LABEL + 24, ty, 20, 400, C.muted); ty += 28; }
+        ctx.fillStyle = C.line; ctx.fillRect(PAD, y + block.height - 8, INNER, 1);
+      } else if (block.type === 'heading') {
+        line(block.title, PAD, y + 30, 30, 700, C.navy);
+      }
+      y += block.height;
+    }
+    line('AI Study Planner · MVP', PAD, canvas.height - 48, 20, 400, C.muted);
+    if (pages.length > 1) line(`${index + 1} / ${pages.length}`, W - PAD - 100, canvas.height - 48, 20, 400, C.muted);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.94));
+    if (!blob || !blob.size || blob.type !== 'image/jpeg') throw new Error('The JPG could not be created.');
+    const url = URL.createObjectURL(blob), anchor = document.createElement('a');
+    const week = /^\d{4}-\d{2}-\d{2}$/.test(state.week) ? state.week : 'week';
+    anchor.href = url;
+    anchor.download = `study-planner-plan-${week}${pages.length > 1 ? `-part-${index + 1}` : ''}.jpg`;
+    document.body.append(anchor); anchor.click(); anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    canvas.width = 1; canvas.height = 1;
+  }
+  return true;
+}
+
+</script></body>
+</html>
